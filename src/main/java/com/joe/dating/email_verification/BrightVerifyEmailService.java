@@ -15,7 +15,7 @@ public class BrightVerifyEmailService implements EmailVerificationService {
 
     private final Logger logger = LoggerFactory.getLogger(BrightVerifyEmailService.class);
 
-    @Value("${email.validation.brightverify_url:}")
+    @Value("${email.validation.brightverify-url:}")
     private String brightVerifyUrl;
 
     private RestOperations restOperations;
