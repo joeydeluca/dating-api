@@ -5,6 +5,7 @@ import com.joe.dating.domain.user.UserService;
 import com.joe.dating.domain.user.User;
 import com.joe.dating.domain.user.models.Profile;
 import com.joe.dating.security.AuthContext;
+import com.joe.dating.security.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -21,14 +22,17 @@ public class UserResource {
 
     private UserService userService;
     private CaptchaService captchaService;
+    private AuthService authService;
     private boolean isCaptchaEnabled;
 
     public UserResource(
             UserService userService,
             CaptchaService captchaService,
+            AuthService authService,
             @Value("${captcha.enable}") boolean isCaptchaEnabled) {
         this.userService = userService;
         this.captchaService = captchaService;
+        this.authService = authService;
         this.isCaptchaEnabled = isCaptchaEnabled;
     }
 
@@ -54,7 +58,10 @@ public class UserResource {
     public ResponseEntity<Profile> updateProfile(
             @PathVariable("id") Long userId,
             @RequestBody Profile profile,
+            @RequestHeader(value = "authorization") String authToken,
             @RequestHeader(value = "captcha", required = false) String captcha) {
+
+        this.authService.verifyToken(authToken);
 
         if (captcha != null && isCaptchaEnabled && !captchaService.verifyCaptcha(captcha)) {
             throw new RuntimeException("Captcha verification failed");
