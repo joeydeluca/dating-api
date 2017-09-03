@@ -1,4 +1,9 @@
 package com.joe.dating.cloud;
 
-public class CloudStorage {
+import java.io.InputStream;
+
+public interface CloudStorage {
+
+    String uploadImage(InputStream inputStream, String filename);
+    void deleteImage(String url);
 }

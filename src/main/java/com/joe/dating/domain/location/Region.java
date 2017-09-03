@@ -1,5 +1,7 @@
 package com.joe.dating.domain.location;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -16,6 +18,7 @@ public class Region {
     @Column(name = "Region", updatable = false, insertable = false)
     private String regionName;
 
+    @JsonIgnore
     @Column(name = "COUNTRYID", updatable = false, insertable = false)
     private String countryId;
 

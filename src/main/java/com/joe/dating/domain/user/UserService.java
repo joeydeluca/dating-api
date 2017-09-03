@@ -1,5 +1,6 @@
 package com.joe.dating.domain.user;
 
+import com.joe.dating.common.Util;
 import com.joe.dating.domain.user.models.CompletionStatus;
 import com.joe.dating.domain.user.models.Gender;
 import com.joe.dating.domain.user.models.Profile;
@@ -10,9 +11,15 @@ import com.joe.dating.security.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,10 +55,6 @@ public class UserService {
         return user;
     }
 
-    public List<User> search(int ageFrom, int ageTo, String countryId, String regionId, String cityId) {
-        return userRepository.findAll();
-    }
-
     public AuthContext create(String email, String username, String password, Gender gender, Gender genderSeeking) {
         if(userRepository.findByEmail(email).size() > 0) {
             throw new ValidationException("email", "Email address must be unique");
@@ -70,7 +73,7 @@ public class UserService {
         User user = new User();
         user.setEmail(email);
         user.setUsername(username);
-        user.setPassword(getHashedPassword(password));
+        user.setPassword(Util.md5(password));
         user.setGender(gender);
         user.setGenderSeeking(genderSeeking);
         user.setCompletionStatus(CompletionStatus.INCOMPLETE);
@@ -87,13 +90,48 @@ public class UserService {
                 );
     }
 
-    public User updateProfile(Long userId, Profile profile) {
-        User user = findOne(userId);
-        user.setProfile(profile);
-        return userRepository.save(user);
+    public User completeUserJoin(Long userId, User joinUser) {
+        User existingUser = findOne(userId);
+        existingUser.setProfile(joinUser.getProfile());
+        existingUser.setBirthDate(joinUser.getBirthDate());
+        existingUser.setCompletionStatus(CompletionStatus.COMPLETE);
+        return userRepository.save(existingUser);
     }
 
-    private String getHashedPassword(String password) {
-        return DigestUtils.md5Digest(password.getBytes()).toString();
+    public User updateProfile(Long userId, Profile profile) {
+        User existingUser = findOne(userId);
+        existingUser.setProfile(profile);
+        return userRepository.save(existingUser);
     }
+
+    public Page<User> searchProfiles(Pageable pageable, int ageFrom, int ageTo, String countryId, String regionId, String cityId) {
+        List<Specification<User>> specifications = new ArrayList<>();
+        specifications.add(UserSpecification.hasCommonFields());
+        specifications.add(UserSpecification.ageFrom(ageFrom));
+        specifications.add(UserSpecification.ageTo(ageTo));
+
+        if(countryId != null && countryId.length() > 0) {
+            specifications.add(UserSpecification.hasCountry(countryId));
+        }
+
+        if(regionId != null && regionId.length() > 0) {
+            specifications.add(UserSpecification.hasRegion(regionId));
+        }
+
+        if(cityId != null && cityId.length() > 0) {
+            specifications.add(UserSpecification.hasCity(cityId));
+        }
+
+        Specification<User> result = specifications.get(0);
+        for (int i = 1; i < specifications.size(); i++) {
+            result = Specifications.where(result).and(specifications.get(i));
+        }
+
+        return userRepository.findAll(result, pageable);
+    }
+
+    private Profile userToProfile(User user) {
+        return user.getProfile();
+    }
+
 }

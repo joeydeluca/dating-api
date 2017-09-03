@@ -12,4 +12,20 @@ public class Height {
     private String feet;
     @Column(name = "height_inch")
     private String inches;
+
+    public String getFeet() {
+        return feet;
+    }
+
+    public void setFeet(String feet) {
+        this.feet = feet;
+    }
+
+    public String getInches() {
+        return inches;
+    }
+
+    public void setInches(String inches) {
+        this.inches = inches;
+    }
 }

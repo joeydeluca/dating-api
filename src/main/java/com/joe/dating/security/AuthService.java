@@ -2,16 +2,44 @@ package com.joe.dating.security;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.joe.dating.common.Util;
+import com.joe.dating.domain.user.User;
+import com.joe.dating.domain.user.UserRepository;
+import com.joe.dating.domain.user.UserService;
 import com.joe.dating.domain.user.models.Gender;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.DigestUtils;
 
 @Component
 public class AuthService {
 
-    private JwtService jwtService;
+    private final Logger logger = LoggerFactory.getLogger(AuthService.class);
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
 
-    public AuthService(JwtService jwtService) {
+    public AuthService(JwtService jwtService, UserRepository userRepository) {
         this.jwtService = jwtService;
+        this.userRepository = userRepository;
+    }
+
+    public AuthContext createAuthContext(String email, String rawPassword) {
+        User user = userRepository.findByEmailAndPassword(email, Util.md5(rawPassword));
+        if(user == null) {
+            logger.info("Login failure. email={}", email);
+            throw new IllegalArgumentException("Invalid login");
+        }
+
+        return createAuthContext(
+                user.getId(),
+                user.isPaid(),
+                user.getCompletionStatus(),
+                user.getSiteId(),
+                user.getGender(),
+                user.getGenderSeeking()
+        );
+
     }
 
     public AuthContext createAuthContext(Long userId,
@@ -64,5 +92,9 @@ public class AuthService {
         authContext.setGenderSeeking(Gender.valueOf(jwt.getClaim("genderSeeking").asString()));
         authContext.setPaid(jwt.getClaim("isPaid").asBoolean());
         return authContext;
+    }
+
+    private String getHashedPassword(String password) {
+        return DigestUtils.md5Digest(password.getBytes()).toString();
     }
 }

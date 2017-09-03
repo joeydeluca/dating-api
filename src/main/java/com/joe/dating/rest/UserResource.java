@@ -6,12 +6,12 @@ import com.joe.dating.domain.user.User;
 import com.joe.dating.domain.user.models.Profile;
 import com.joe.dating.security.AuthContext;
 import com.joe.dating.security.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * Created by Joe Deluca on 11/21/2016.
@@ -25,6 +25,8 @@ public class UserResource {
     private AuthService authService;
     private boolean isCaptchaEnabled;
 
+    private final int DEFAULT_PAGE_SIZE = 10;
+
     public UserResource(
             UserService userService,
             CaptchaService captchaService,
@@ -37,15 +39,17 @@ public class UserResource {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> findOne(@PathVariable("id") Long id) {
+    public ResponseEntity<User> findOne(
+            @PathVariable("id") Long id,
+            @RequestHeader(value = "authorization") String authToken) {
+
+        AuthContext authContext = this.authService.verifyToken(authToken);
+        if(!id.equals(authContext.getUserId())) {
+            throw new IllegalArgumentException("Unauthorized");
+        }
+
         User user = userService.findOne(id);
         return ResponseEntity.ok(user);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<User>> findMany() {
-        List<User> users = userService.search(18, 60, null, null, null);
-        return ResponseEntity.ok(users);
     }
 
     @PostMapping
@@ -54,10 +58,10 @@ public class UserResource {
         return ResponseEntity.ok(authContext);
     }
 
-    @PutMapping("/{id}/profile")
-    public ResponseEntity<Profile> updateProfile(
+    @PutMapping("/{id}/join-completion")
+    public ResponseEntity<User> joinCompletion(
             @PathVariable("id") Long userId,
-            @RequestBody Profile profile,
+            @RequestBody User user,
             @RequestHeader(value = "authorization") String authToken,
             @RequestHeader(value = "captcha", required = false) String captcha) {
 
@@ -67,9 +71,43 @@ public class UserResource {
             throw new RuntimeException("Captcha verification failed");
         }
 
-        User user = userService.updateProfile(userId, profile);
+        return ResponseEntity.ok(userService.completeUserJoin(userId, user));
+    }
 
-        return ResponseEntity.ok(user.getProfile());
+    @PutMapping("/{id}/profile")
+    public ResponseEntity<User> updateProfile(
+            @PathVariable("id") Long userId,
+            @RequestBody Profile profile,
+            @RequestHeader(value = "authorization") String authToken) {
+
+        this.authService.verifyToken(authToken);
+
+        return ResponseEntity.ok(userService.updateProfile(userId, profile));
+    }
+
+    @GetMapping("/{id}/profile")
+    public ResponseEntity<Profile> findProfile(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(userService.findOne(id).getProfile());
+    }
+
+    @GetMapping("/profiles")
+    public ResponseEntity<Page<RecipientProfile>> searchProfiles(
+            @RequestHeader(value = "authorization") String authToken,
+            @PageableDefault(size = DEFAULT_PAGE_SIZE)
+            Pageable pageable,
+            @RequestParam(value = "age-from", defaultValue = "18") int ageFrom,
+            @RequestParam(value = "age-to", defaultValue = "65") int ageTo,
+            @RequestParam(value = "country") String countryId,
+            @RequestParam(value = "region", required = false) String regionId,
+            @RequestParam(value = "city", required = false) String cityId
+
+
+    ) {
+
+        this.authService.verifyToken(authToken);
+
+        return ResponseEntity.ok(userService.searchProfiles(pageable, ageFrom, ageTo, countryId, regionId, cityId)
+                        .map(user -> new RecipientProfile(user)));
     }
 
 

@@ -1,77 +1,85 @@
 package com.joe.dating.rest;
 
-import com.joe.dating.captcha_verification.CaptchaService;
-import com.joe.dating.domain.user.UserService;
-import com.joe.dating.domain.user.User;
-import com.joe.dating.domain.user.models.Profile;
+import com.joe.dating.cloud.CloudStorage;
+import com.joe.dating.domain.photo.Photo;
+import com.joe.dating.domain.photo.PhotoRepository;
+import com.joe.dating.domain.photo.PhotoService;
 import com.joe.dating.security.AuthContext;
 import com.joe.dating.security.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * Created by Joe Deluca on 11/21/2016.
  */
 @RestController
-@RequestMapping("/api/users")
-public class UserResource {
+@RequestMapping("/api/photos")
+public class PhotoResource {
 
-    private UserService userService;
-    private CaptchaService captchaService;
+    private PhotoService photoService;
     private AuthService authService;
-    private boolean isCaptchaEnabled;
 
-    public UserResource(
-            UserService userService,
-            CaptchaService captchaService,
-            AuthService authService,
-            @Value("${captcha.enable}") boolean isCaptchaEnabled) {
-        this.userService = userService;
-        this.captchaService = captchaService;
+    public PhotoResource(PhotoService photoService, AuthService authService, PhotoRepository photoRepository, CloudStorage cloudStorage) {
+        this.photoService = photoService;
         this.authService = authService;
-        this.isCaptchaEnabled = isCaptchaEnabled;
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<User> findOne(@PathVariable("id") Long id) {
-        User user = userService.findOne(id);
-        return ResponseEntity.ok(user);
-    }
-
-    @GetMapping
-    public ResponseEntity<List<User>> findMany() {
-        List<User> users = userService.search(18, 60, null, null, null);
-        return ResponseEntity.ok(users);
     }
 
     @PostMapping
-    public ResponseEntity<AuthContext> create(@RequestBody User user) {
-        AuthContext authContext = userService.create(user.getEmail(), user.getUsername(), user.getPassword(), user.getGender(), user.getGenderSeeking());
-        return ResponseEntity.ok(authContext);
+    public ResponseEntity<Photo> handleFileUpload(
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader(value = "authorization") String authToken) throws IOException {
+
+        AuthContext authContext = this.authService.verifyToken(authToken);
+
+        Photo photo = photoService.createPhoto(authContext.getUserId(), file);
+
+        return ResponseEntity.ok(photo);
     }
 
-    @PutMapping("/{id}/profile")
-    public ResponseEntity<Profile> updateProfile(
-            @PathVariable("id") Long userId,
-            @RequestBody Profile profile,
+    @PutMapping("/{id}/crop")
+    public ResponseEntity<Photo> crop(
+            @PathVariable("id") Long photoId,
             @RequestHeader(value = "authorization") String authToken,
-            @RequestHeader(value = "captcha", required = false) String captcha) {
+            @RequestBody PhotoCropDto photoCropDto) throws IOException {
 
         this.authService.verifyToken(authToken);
 
-        if (captcha != null && isCaptchaEnabled && !captchaService.verifyCaptcha(captcha)) {
-            throw new RuntimeException("Captcha verification failed");
-        }
+        Photo photo = photoService.cropPhoto(
+                photoId,
+                photoCropDto.getX(),
+                photoCropDto.getY(),
+                photoCropDto.getWidth(),
+                photoCropDto.getHeight()
+        );
 
-        User user = userService.updateProfile(userId, profile);
-
-        return ResponseEntity.ok(user.getProfile());
+        return ResponseEntity.ok(photo);
     }
 
+    @PutMapping("/{id}/profile")
+    public ResponseEntity<Photo> setProfilePhoto(
+            @PathVariable("id") Long photoId,
+            @RequestHeader(value = "authorization") String authToken) throws IOException {
+
+        AuthContext authContext = this.authService.verifyToken(authToken);
+
+        Photo photo = photoService.setProfilePhoto(authContext.getUserId(), photoId);
 
 
+        return ResponseEntity.ok(photo);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable("id") Long photoId,
+            @RequestHeader(value = "authorization") String authToken) throws IOException {
+
+        AuthContext authContext = this.authService.verifyToken(authToken);
+
+        photoService.deletePhoto(authContext.getUserId(), photoId);
+
+        return ResponseEntity.ok().build();
+    }
 }

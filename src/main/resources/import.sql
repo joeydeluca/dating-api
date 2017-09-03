@@ -105,3 +105,28 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `CITY` (`city_id`),
   KEY `IS_DELETED` (`is_deleted`)
 );
+
+DROP TABLE IF EXISTS `photos`;
+CREATE TABLE IF NOT EXISTS `photos` (
+  `id` int(11) NOT NULL auto_increment,
+  `profile_id` int(11) NOT NULL,
+  `original_filename` varchar(200) default NULL,
+  `medium_filename` varchar(200) default NULL,
+  `thumb_filename` varchar(200) default NULL,
+  `large_filename` varchar(200) default NULL,
+  `is_profile_photo` varchar(1) NOT NULL,
+  `insert_date` date NOT NULL,
+  PRIMARY KEY  (`id`)
+);
+
+DROP TABLE IF EXISTS `messages`;
+CREATE TABLE IF NOT EXISTS `messages` (
+  `id` int(11) NOT NULL auto_increment,
+  `from_user_id` int(11) NOT NULL,
+  `to_user_id` int(11) NOT NULL,
+  `subject` varchar(100) NOT NULL,
+  `message` varchar(4000) NOT NULL,
+  `send_date` datetime NOT NULL,
+  `read_date` datetime default NULL,
+  PRIMARY KEY  (`id`)
+);

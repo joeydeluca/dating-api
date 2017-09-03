@@ -1,6 +1,8 @@
 package com.joe.dating.domain.user;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.joe.dating.common.Util;
 import com.joe.dating.domain.DatingEntity;
 import com.joe.dating.domain.user.models.CompletionStatus;
@@ -9,6 +11,7 @@ import com.joe.dating.domain.user.models.Gender;
 import com.joe.dating.domain.user.models.Profile;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.Date;
 
 /**
@@ -25,9 +28,11 @@ public class User extends DatingEntity {
     @Column(name = "username", updatable = false)
     private String username;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "password")
     private String password;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "is_paid")
     private String isPaid;
 
@@ -37,14 +42,16 @@ public class User extends DatingEntity {
     @Column(name = "gender_seeking", updatable = false)
     private String genderSeeking;
 
-    @Column(name = "birth_date", columnDefinition="DATETIME", updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date birthDate;
+    @Column(name = "birth_date", columnDefinition="DATE", updatable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate birthDate;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "created_date", updatable = false, columnDefinition="DATETIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdDate;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "is_deleted")
     private String isDeleted;
 
@@ -60,12 +67,20 @@ public class User extends DatingEntity {
     @Embedded
     private EmailSubscription emailSubscription;
 
+    public User() {
+    }
+
+    public User(Long id) {
+        super.setId(id);
+    }
+
     @PrePersist
     public void before() {
         setCreatedDate(new Date());
         setCompletionStatus(CompletionStatus.INCOMPLETE);
         setIsDeleted(false);
         setIsPaid(false);
+        setSiteId(3);
     }
 
     public String getEmail() {
@@ -133,11 +148,11 @@ public class User extends DatingEntity {
         this.genderSeeking = genderSeeking.name();
     }
 
-    public Date getBirthDate() {
+    public LocalDate getBirthDate() {
         return birthDate;
     }
 
-    public void setBirthDate(Date birthDate) {
+    public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
     }
 
