@@ -18,8 +18,8 @@ public class IPNMessage extends DatingEntity {
     private TransactionType transactionType;
     @JsonProperty("payment_status")
     private PaymentStatus paymentStatus;
-    @JsonProperty("mc_gross")
-    private String mcGross;
+    @JsonProperty("amount3")
+    private String amount3;
     @JsonProperty("mc_currency")
     private String mcCurrency;
     @JsonProperty("custom")
@@ -28,15 +28,12 @@ public class IPNMessage extends DatingEntity {
     private String itemNumber;
     @JsonProperty("item_name")
     private String itemName;
-    @JsonProperty("txn_id")
-    private String txnId;
     @JsonProperty("txn_type")
     private String txnType;
     @JsonProperty("payer_id")
     private String payerId;
     @JsonProperty("payer_email")
     private String payerEmail;
-
     @JsonProperty("subscr_id")
     private String subscrId;
     @JsonProperty("subscr_date")
@@ -66,12 +63,12 @@ public class IPNMessage extends DatingEntity {
         this.paymentStatus = paymentStatus;
     }
 
-    public String getMcGross() {
-        return mcGross;
+    public String getAmount3() {
+        return amount3;
     }
 
-    public void setMcGross(String mcGross) {
-        this.mcGross = mcGross;
+    public void setAmount3(String amount3) {
+        this.amount3 = amount3;
     }
 
     public String getMcCurrency() {
@@ -104,14 +101,6 @@ public class IPNMessage extends DatingEntity {
 
     public void setItemName(String itemName) {
         this.itemName = itemName;
-    }
-
-    public String getTxnId() {
-        return txnId;
-    }
-
-    public void setTxnId(String txnId) {
-        this.txnId = txnId;
     }
 
     public String getTxnType() {
