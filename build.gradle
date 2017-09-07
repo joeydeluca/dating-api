@@ -20,6 +20,8 @@ apply plugin: 'com.google.cloud.tools.appengine'
 
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 
 jar {
 	baseName = 'dating-api'
@@ -48,4 +50,8 @@ dependencies {
 
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile "org.mockito:mockito-core:2.+"
+}
+
+task wrapper(type: Wrapper) {
+	gradleVersion = '4.1'
 }
