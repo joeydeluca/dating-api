@@ -335,3 +335,8 @@ INSERT INTO `messages` (`id`, `from_user_id`, `to_user_id`, `subject`, `message`
 (133, 44, 37, 'Someone sent you a message', 'dfd', '2013-02-25 16:40:59', NULL),
 (134, 40, 37, 'Someone sent you a message', 'cwef fw ef wef', '2013-02-25 16:42:07', NULL),
 (135, 37, 40, 'Someone sent you a message', 'c wef we f wef ', '2013-02-25 16:42:08', NULL);
+
+INSERT INTO `product_prices` (`id`, `durration_text`, `price`, `currency`, `durration_days`, `position_weight`, `is_featured`, `is_enabled`) VALUES
+(1, '1 Month', 29.99, 'USD', 30, 3, 'N', 'Y'),
+(2, '6 Months', 49.99, 'USD', 180, 2, 'Y', 'Y'),
+(3, '3 Months', 39.99, 'USD', 90, 1, 'N', 'Y');

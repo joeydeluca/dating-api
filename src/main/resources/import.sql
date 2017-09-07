@@ -130,3 +130,16 @@ CREATE TABLE IF NOT EXISTS `messages` (
   `read_date` datetime default NULL,
   PRIMARY KEY  (`id`)
 );
+
+DROP TABLE IF EXISTS `product_prices`;
+CREATE TABLE IF NOT EXISTS `product_prices` (
+  `id` int(11) NOT NULL auto_increment,
+  `durration_text` varchar(100) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `currency` varchar(3) NOT NULL,
+  `durration_days` int(11) NOT NULL,
+  `position_weight` int(11) NOT NULL,
+  `is_featured` varchar(1) NOT NULL,
+  `is_enabled` varchar(1) NOT NULL,
+  PRIMARY KEY  (`id`)
+);
