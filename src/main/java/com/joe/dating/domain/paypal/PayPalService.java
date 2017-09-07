@@ -34,7 +34,7 @@ public class PayPalService {
         try {
             ipnMessage = objectMapper.readValue(rawIpnMessage, IPNMessage.class);
         } catch (IOException e) {
-            throw new RuntimeException("Could not parse paypal ipn message. message=" + rawIpnMessage);
+            throw new RuntimeException("Could not parse paypal ipn message. message=" + rawIpnMessage, e);
         }
         ipnMessage.setRawIpn(rawIpnMessage);
         return ipnMessage;
