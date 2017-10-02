@@ -10,7 +10,6 @@ import org.springframework.web.client.RestOperations;
 /**
  * Created by Joe Deluca on 11/30/2016.
  */
-@Component
 public class BrightVerifyEmailService implements EmailVerificationService {
 
     private final Logger logger = LoggerFactory.getLogger(BrightVerifyEmailService.class);

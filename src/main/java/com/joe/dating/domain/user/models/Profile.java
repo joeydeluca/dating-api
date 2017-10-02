@@ -5,7 +5,6 @@ import com.joe.dating.domain.location.City;
 import com.joe.dating.domain.location.Country;
 import com.joe.dating.domain.location.Region;
 import com.joe.dating.domain.photo.Photo;
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
@@ -17,7 +16,7 @@ import java.util.List;
  */
 @Embeddable
 public class Profile {
-    private static final String DEFAULT_PROFILE_PHOTO_URL = "https://storage.googleapis.com/dating-176518.appspot.com/noimage.jpeg";
+    private static final String DEFAULT_PROFILE_PHOTO_URL = Photo.basePhotoUrl + "noimage.jpeg";
 
     @NotFound(action= NotFoundAction.IGNORE)
     @ManyToOne()
@@ -35,7 +34,7 @@ public class Profile {
     private Country country;
 
     @OrderBy("isProfilePhoto DESC")
-    @OneToMany()
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name="profile_id")
     private List<Photo> photos;
 
@@ -423,7 +422,6 @@ public class Profile {
         this.photos = photos;
     }
 
-    @JsonIgnore
     public String getProfilePhotoUrl() {
         if(this.photos == null) return null;
         return this.photos.stream().filter(p -> p.isProfilePhoto()).findFirst().map(p -> p.getMediumUrl()).orElse(DEFAULT_PROFILE_PHOTO_URL);

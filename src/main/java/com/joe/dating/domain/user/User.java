@@ -46,7 +46,7 @@ public class User extends DatingEntity {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name = "created_date", updatable = false, columnDefinition="DATETIME")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdDate;
@@ -197,7 +197,7 @@ public class User extends DatingEntity {
     }
 
     public EmailSubscription getEmailSubscription() {
-        return emailSubscription;
+        return emailSubscription == null ? new EmailSubscription(): emailSubscription;
     }
 
     public void setEmailSubscription(EmailSubscription emailSubscription) {

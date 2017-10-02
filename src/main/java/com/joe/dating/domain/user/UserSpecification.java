@@ -3,6 +3,7 @@ package com.joe.dating.domain.user;
 import com.joe.dating.domain.location.City;
 import com.joe.dating.domain.location.Country;
 import com.joe.dating.domain.location.Region;
+import com.joe.dating.domain.user.models.CompletionStatus;
 import com.joe.dating.domain.user.models.Profile;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -18,7 +19,7 @@ public class UserSpecification {
         return (root, query, cb) ->
                     cb.and(
                             cb.equal(root.get("isDeleted"), "N"),
-                            cb.equal(root.get("completionStatus"), 2),
+                            cb.equal(root.get("completionStatus"), CompletionStatus.COMPLETE.getId()),
                             cb.equal(root.get("siteId"), 3)
                     );
     }
@@ -51,13 +52,20 @@ public class UserSpecification {
     }
 
     public static Specification<User> ageFrom(int age) {
-        System.out.println(java.sql.Date.valueOf(LocalDate.now().minusYears(age)));
         return (root, query, cb) -> cb.lessThanOrEqualTo(root.get("birthDate"), java.sql.Date.valueOf(LocalDate.now().minusYears(age)));
     }
 
     public static Specification<User> ageTo(int age) {
-        System.out.println(java.sql.Date.valueOf(LocalDate.now().minusYears(age)));
         return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("birthDate"), getDate(LocalDateTime.now().minusYears(age)));
+    }
+
+
+    public static Specification<User> gender(String gender) {
+        return (root, query, cb) -> cb.equal(root.get("gender"), gender);
+    }
+
+    public static Specification<User> genderSeeking(String genderSeeking) {
+        return (root, query, cb) -> cb.equal(root.get("genderSeeking"), genderSeeking);
     }
 
     private static Date getDate(LocalDateTime localDate) {

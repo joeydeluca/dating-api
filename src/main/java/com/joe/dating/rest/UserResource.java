@@ -1,8 +1,13 @@
 package com.joe.dating.rest;
 
 import com.joe.dating.captcha_verification.CaptchaService;
+import com.joe.dating.common.NiceTryException;
+import com.joe.dating.common.NotFoundException;
+import com.joe.dating.domain.payment.Subscription;
+import com.joe.dating.domain.payment.SubscriptionRepository;
 import com.joe.dating.domain.user.UserService;
 import com.joe.dating.domain.user.User;
+import com.joe.dating.domain.user.models.EmailSubscription;
 import com.joe.dating.domain.user.models.Profile;
 import com.joe.dating.security.AuthContext;
 import com.joe.dating.security.AuthService;
@@ -23,6 +28,7 @@ public class UserResource {
     private UserService userService;
     private CaptchaService captchaService;
     private AuthService authService;
+    private SubscriptionRepository subscriptionRepository;
     private boolean isCaptchaEnabled;
 
     private final int DEFAULT_PAGE_SIZE = 10;
@@ -31,11 +37,13 @@ public class UserResource {
             UserService userService,
             CaptchaService captchaService,
             AuthService authService,
+            SubscriptionRepository subscriptionRepository,
             @Value("${captcha.enable}") boolean isCaptchaEnabled) {
         this.userService = userService;
         this.captchaService = captchaService;
         this.authService = authService;
         this.isCaptchaEnabled = isCaptchaEnabled;
+        this.subscriptionRepository = subscriptionRepository;
     }
 
     @GetMapping("/{id}")
@@ -85,6 +93,33 @@ public class UserResource {
         return ResponseEntity.ok(userService.updateProfile(userId, profile));
     }
 
+    @PutMapping("/{id}/email-subscription")
+    public ResponseEntity<User> updateEmailSubscriptions(
+            @PathVariable("id") Long userId,
+            @RequestBody EmailSubscription emailSubscription,
+            @RequestHeader(value = "authorization") String authToken) {
+
+        this.authService.verifyToken(authToken);
+
+        return ResponseEntity.ok(userService.updateEmailSubscription(userId, emailSubscription));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable("id") Long userId,
+            @RequestHeader(value = "authorization") String authToken) {
+
+        this.authService.verifyToken(authToken);
+        AuthContext authContext = this.authService.verifyToken(authToken);
+        if(!userId.equals(authContext.getUserId())) {
+            throw new NiceTryException();
+        }
+
+        userService.delete(userId);
+
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{id}/profile")
     public ResponseEntity<Profile> findProfile(@PathVariable("id") Long id) {
         return ResponseEntity.ok(userService.findOne(id).getProfile());
@@ -104,12 +139,31 @@ public class UserResource {
 
     ) {
 
-        this.authService.verifyToken(authToken);
+        AuthContext context = this.authService.verifyToken(authToken);
 
-        return ResponseEntity.ok(userService.searchProfiles(pageable, ageFrom, ageTo, countryId, regionId, cityId)
+        return ResponseEntity.ok(userService.searchProfiles(context, pageable, ageFrom, ageTo, countryId, regionId, cityId)
                         .map(user -> new RecipientProfile(user)));
     }
 
+    @GetMapping("/payment-status")
+    public ResponseEntity<String> paymentStatus(
+            @RequestHeader(value = "authorization") String authToken) {
+        AuthContext authContext = this.authService.verifyToken(authToken);
+        User user = userService.findOne(authContext.getUserId());
+        return ResponseEntity.ok(user.isPaid() ? "PAID" : "FREE");
+    }
 
+    @GetMapping("/subscription")
+    public ResponseEntity<Subscription> subscriptions(
+            @RequestHeader(value = "authorization") String authToken) {
+        AuthContext authContext = this.authService.verifyToken(authToken);
+
+        Subscription subscription = subscriptionRepository.findByUserId(authContext.getUserId());
+        if(subscription == null) {
+            throw new NotFoundException();
+        }
+
+        return ResponseEntity.ok(subscription);
+    }
 
 }

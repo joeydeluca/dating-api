@@ -11,12 +11,18 @@ import com.joe.dating.domain.profileview.ProfileView;
 import com.joe.dating.domain.profileview.ProfileViewRepository;
 import com.joe.dating.domain.user.User;
 import com.joe.dating.domain.user.UserService;
+import com.joe.dating.email_sending.EmailSender;
+import com.joe.dating.email_sending.FavoriteAlertEmail;
+import com.joe.dating.email_sending.FlirtAlertEmail;
+import com.joe.dating.email_sending.MessageAlertEmail;
 import com.joe.dating.security.AuthContext;
 import com.joe.dating.security.AuthService;
+import freemarker.template.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -26,6 +32,10 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -43,18 +53,34 @@ public class RecipientProfileResource {
     private final UserService userService;
     private final MessageRepository messageRepository;
     private final ProfileViewRepository profileViewRepository;
+    private final EmailSender emailSender;
+    private final Configuration freemarkerConfiguration;
 
-    public RecipientProfileResource(AuthService authService, FlirtRepository flirtRepository, FavoriteRepository favoriteRepository, UserService userService, MessageRepository messageRepository, ProfileViewRepository profileViewRepository) {
+    public RecipientProfileResource(AuthService authService, FlirtRepository flirtRepository, FavoriteRepository favoriteRepository, UserService userService, MessageRepository messageRepository, ProfileViewRepository profileViewRepository, EmailSender emailSender, Configuration freemarkerConfiguration) {
         this.authService = authService;
         this.flirtRepository = flirtRepository;
         this.favoriteRepository = favoriteRepository;
         this.userService = userService;
         this.messageRepository = messageRepository;
         this.profileViewRepository = profileViewRepository;
+        this.emailSender = emailSender;
+        this.freemarkerConfiguration = freemarkerConfiguration;
     }
 
     @GetMapping("/{recipientUserId}")
-    public ResponseEntity<RecipientProfile> findOne(@PathVariable("recipientUserId") Long recipientUserId) {
+    public ResponseEntity<RecipientProfile> findOne(
+            @PathVariable("recipientUserId") Long recipientUserId,
+            @RequestHeader(value = "authorization") String authToken) {
+
+        AuthContext authContext = this.authService.verifyToken(authToken);
+
+        doAsync(() -> {
+            ProfileView profileView = new ProfileView();
+            profileView.setFromUser(new User(authContext.getUserId()));
+            profileView.setToUser(new User(recipientUserId));
+            profileViewRepository.save(profileView);
+        });
+
         User user = userService.findOne(recipientUserId);
         return ResponseEntity.ok(new RecipientProfile(user));
     }
@@ -76,10 +102,14 @@ public class RecipientProfileResource {
             return ResponseEntity.accepted().build();
         }
 
+        User user = userService.findOne(authContext.getUserId());
+        User recipientUser = userService.findOne(recipientUserId);
         Flirt flirt = new Flirt();
-        flirt.setFromUser(new User(authContext.getUserId()));
-        flirt.setToUser(new User(recipientUserId));
+        flirt.setFromUser(user);
+        flirt.setToUser(recipientUser);
         flirtRepository.save(flirt);
+
+        emailSender.sendEmail(new FlirtAlertEmail(user, recipientUser, freemarkerConfiguration));
 
         return ResponseEntity.accepted().build();
     }
@@ -98,10 +128,14 @@ public class RecipientProfileResource {
             return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
         }
 
+        User user = userService.findOne(authContext.getUserId());
+        User recipientUser = userService.findOne(recipientUserId);
         Favorite favorite = new Favorite();
-        favorite.setFromUser(new User(authContext.getUserId()));
-        favorite.setToUser(new User(recipientUserId));
+        favorite.setFromUser(user);
+        favorite.setToUser(recipientUser);
         favoriteRepository.save(favorite);
+
+        emailSender.sendEmail(new FavoriteAlertEmail(user, recipientUser, freemarkerConfiguration));
 
         return ResponseEntity.accepted().build();
     }
@@ -154,17 +188,17 @@ public class RecipientProfileResource {
 
         Message message = new Message();
 
-        User fromUser = new User();
-        fromUser.setId(authContext.getUserId());
-        User toUser = new User();
-        toUser.setId(recipientUserId);
+        User user = userService.findOne(authContext.getUserId());
+        User recipientUser = userService.findOne(recipientUserId);
 
-        message.setFromUser(fromUser);
-        message.setToUser(toUser);
+        message.setFromUser(user);
+        message.setToUser(recipientUser);
         message.setMessage(messageText);
         message.setSubject("");
 
         messageRepository.save(message);
+
+        emailSender.sendEmail(new MessageAlertEmail(user, recipientUser, freemarkerConfiguration));
 
         return ResponseEntity.ok(message);
     }
@@ -241,8 +275,14 @@ public class RecipientProfileResource {
 
         return ResponseEntity.ok(
                 profileViewRepository.findByToUserId(authContext.getUserId())
-                    .stream().map(view -> new ProfileEvent(view.getFromUser(), view.getDate())).collect(Collectors.toList())
+                    .stream()
+                        .map(view -> new ProfileEvent(view.getFromUser(), view.getDate())).collect(Collectors.toList())
         );
+    }
+
+    @Async
+    private void doAsync(Runnable f) {
+        f.run();
     }
 
 }

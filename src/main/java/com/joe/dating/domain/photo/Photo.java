@@ -11,14 +11,17 @@ import java.util.Date;
  */
 @Entity(name = "photos")
 public class Photo extends DatingEntity {
+
+    public static final String basePhotoUrl = "https://s3.amazonaws.com/dating-bucket/";
+
     @Column(name = "profile_id", updatable = false)
     private Long profileId;
 
     @Column(name = "medium_filename")
-    private String mediumUrl;
+    private String mediumFilename;
 
     @Column(name = "large_filename")
-    private String largeUrl;
+    private String largeFilename;
 
     @Column(name = "is_profile_photo")
     private String isProfilePhoto;
@@ -26,6 +29,14 @@ public class Photo extends DatingEntity {
     @Column(name = "insert_date", columnDefinition="DATETIME", updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date insertDate;
+
+    @Column(name = "version")
+    private int version = 0;
+
+    @Transient
+    private String mediumUrl;
+    @Transient
+    private String largeUrl;
 
     public Photo() {
         setProfilePhoto(false);
@@ -36,6 +47,10 @@ public class Photo extends DatingEntity {
         this.insertDate = new Date();
     }
 
+    public void incrementVersion() {
+        this.version++;
+    }
+
     public Long getProfileId() {
         return profileId;
     }
@@ -44,20 +59,20 @@ public class Photo extends DatingEntity {
         this.profileId = profileId;
     }
 
-    public String getMediumUrl() {
-        return mediumUrl;
+    public String getMediumFilename() {
+        return mediumFilename;
     }
 
-    public void setMediumUrl(String mediumUrl) {
-        this.mediumUrl = mediumUrl;
+    public void setMediumFilename(String mediumFilename) {
+        this.mediumFilename = mediumFilename;
     }
 
-    public String getLargeUrl() {
-        return largeUrl;
+    public String getLargeFilename() {
+        return largeFilename;
     }
 
-    public void setLargeUrl(String largeUrl) {
-        this.largeUrl = largeUrl;
+    public void setLargeFilename(String largeFilename) {
+        this.largeFilename = largeFilename;
     }
 
     public boolean isProfilePhoto() {
@@ -70,5 +85,21 @@ public class Photo extends DatingEntity {
 
     public Date getInsertDate() {
         return insertDate;
+    }
+
+    public String getMediumUrl() {
+        return mediumFilename != null ? basePhotoUrl + mediumFilename + "?v=" + version : null;
+    }
+
+    public void setMediumUrl(String mediumUrl) {
+        this.mediumUrl = mediumUrl;
+    }
+
+    public String getLargeUrl() {
+        return largeFilename != null ? basePhotoUrl + largeFilename + "?v=" + version : null;
+    }
+
+    public void setLargeUrl(String largeUrl) {
+        this.largeUrl = largeUrl;
     }
 }

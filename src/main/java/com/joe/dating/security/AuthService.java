@@ -30,6 +30,10 @@ public class AuthService {
             logger.info("Login failure. email={}", email);
             throw new IllegalArgumentException("Invalid login");
         }
+        if(user.isDeleted()) {
+            logger.info("Attempted login to deleted account. email={}", email);
+            throw new IllegalArgumentException("Account deleted");
+        }
 
         return createAuthContext(
                 user.getId(),

@@ -2,6 +2,7 @@ package com.joe.dating.domain.user;
 
 import com.joe.dating.common.Util;
 import com.joe.dating.domain.user.models.CompletionStatus;
+import com.joe.dating.domain.user.models.EmailSubscription;
 import com.joe.dating.domain.user.models.Gender;
 import com.joe.dating.domain.user.models.Profile;
 import com.joe.dating.domain.validaiton.ValidationException;
@@ -39,7 +40,7 @@ public class UserService {
             UserRepository userRepository,
             EmailVerificationService emailVerificationService,
             AuthService authService,
-            @Value("${email.validation.enable-email-verification}") boolean enableEmailVerification
+            @Value("${email.validation.enable}") boolean enableEmailVerification
     ) {
         this.userRepository = userRepository;
         this.emailVerificationService = emailVerificationService;
@@ -104,11 +105,26 @@ public class UserService {
         return userRepository.save(existingUser);
     }
 
-    public Page<User> searchProfiles(Pageable pageable, int ageFrom, int ageTo, String countryId, String regionId, String cityId) {
+    public User updateEmailSubscription(Long userId, EmailSubscription emailSubscription) {
+        User existingUser = findOne(userId);
+        existingUser.setEmailSubscription(emailSubscription);
+        return userRepository.save(existingUser);
+    }
+
+    public void delete(Long userId) {
+        logger.info("Deleting user {}", userId);
+        User user = findOne(userId);
+        user.setIsDeleted(true);
+        userRepository.save(user);
+    }
+
+    public Page<User> searchProfiles(AuthContext authContext, Pageable pageable, int ageFrom, int ageTo, String countryId, String regionId, String cityId) {
         List<Specification<User>> specifications = new ArrayList<>();
         specifications.add(UserSpecification.hasCommonFields());
         specifications.add(UserSpecification.ageFrom(ageFrom));
         specifications.add(UserSpecification.ageTo(ageTo));
+        specifications.add(UserSpecification.gender(authContext.getGenderSeeking().name()));
+        specifications.add(UserSpecification.genderSeeking(authContext.getGender().name()));
 
         if(countryId != null && countryId.length() > 0) {
             specifications.add(UserSpecification.hasCountry(countryId));

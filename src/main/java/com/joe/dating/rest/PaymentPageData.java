@@ -10,6 +10,7 @@ public class PaymentPageData {
     private String paypalNotifyUrl;
     private String paypalCancelUrl;
     private String paypalReturnUrl;
+    private String paypalUnsubscribeUrl;
     private String paypalBusinessName;
 
     public List<ProductPrice> getProductPrices() {
@@ -58,5 +59,13 @@ public class PaymentPageData {
 
     public void setPaypalBusinessName(String paypalBusinessName) {
         this.paypalBusinessName = paypalBusinessName;
+    }
+
+    public String getPaypalUnsubscribeUrl() {
+        return paypalUnsubscribeUrl;
+    }
+
+    public void setPaypalUnsubscribeUrl(String paypalUnsubscribeUrl) {
+        this.paypalUnsubscribeUrl = paypalUnsubscribeUrl;
     }
 }

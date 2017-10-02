@@ -90,25 +90,25 @@ public class MessageResource {
         return ResponseEntity.ok(userService.findOne(id).getProfile());
     }
 
-    @GetMapping("/profiles")
-    public ResponseEntity<Page<RecipientProfile>> searchProfiles(
-            @RequestHeader(value = "authorization") String authToken,
-            @PageableDefault(size = DEFAULT_PAGE_SIZE)
-            Pageable pageable,
-            @RequestParam(value = "age-from", defaultValue = "18") int ageFrom,
-            @RequestParam(value = "age-to", defaultValue = "65") int ageTo,
-            @RequestParam(value = "country") String countryId,
-            @RequestParam(value = "region", required = false) String regionId,
-            @RequestParam(value = "city", required = false) String cityId
-
-
-    ) {
-
-        this.authService.verifyToken(authToken);
-
-        return ResponseEntity.ok(userService.searchProfiles(pageable, ageFrom, ageTo, countryId, regionId, cityId)
-                        .map(user -> new RecipientProfile(user)));
-    }
+//    @GetMapping("/profiles")
+//    public ResponseEntity<Page<RecipientProfile>> searchProfiles(
+//            @RequestHeader(value = "authorization") String authToken,
+//            @PageableDefault(size = DEFAULT_PAGE_SIZE)
+//            Pageable pageable,
+//            @RequestParam(value = "age-from", defaultValue = "18") int ageFrom,
+//            @RequestParam(value = "age-to", defaultValue = "65") int ageTo,
+//            @RequestParam(value = "country") String countryId,
+//            @RequestParam(value = "region", required = false) String regionId,
+//            @RequestParam(value = "city", required = false) String cityId
+//
+//
+//    ) {
+//
+//        this.authService.verifyToken(authToken);
+//
+//        return ResponseEntity.ok(userService.searchProfiles(pageable, ageFrom, ageTo, countryId, regionId, cityId)
+//                        .map(user -> new RecipientProfile(user)));
+//    }
 
 
 

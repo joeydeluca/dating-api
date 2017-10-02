@@ -30,3 +30,11 @@ hs_err_pid*
 build/
 
 out/
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+deploy.sh
+application-default.properties

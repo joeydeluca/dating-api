@@ -13,6 +13,8 @@ public final class PayPalProperties {
     private String paypalCancelUrl;
     @Value("${paypal.return-url}")
     private String paypalReturnUrl;
+    @Value("${paypal.unsubscribe-url}")
+    private String paypalUnsubscribeUrl;
     @Value("${paypal.business-name}")
     private String paypalBusinessName;
 
@@ -34,5 +36,9 @@ public final class PayPalProperties {
 
     public String getPaypalBusinessName() {
         return paypalBusinessName;
+    }
+
+    public String getPaypalUnsubscribeUrl() {
+        return paypalUnsubscribeUrl;
     }
 }

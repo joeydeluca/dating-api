@@ -116,6 +116,7 @@ CREATE TABLE IF NOT EXISTS `photos` (
   `large_filename` varchar(200) default NULL,
   `is_profile_photo` varchar(1) NOT NULL,
   `insert_date` date NOT NULL,
+  `version` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY  (`id`)
 );
 
@@ -141,5 +142,28 @@ CREATE TABLE IF NOT EXISTS `product_prices` (
   `position_weight` int(11) NOT NULL,
   `is_featured` varchar(1) NOT NULL,
   `is_enabled` varchar(1) NOT NULL,
+  PRIMARY KEY  (`id`)
+);
+
+DROP TABLE IF EXISTS `subscriptions`;
+CREATE TABLE IF NOT EXISTS `subscriptions` (
+  `id` int(11) NOT NULL auto_increment,
+  `user_id` int(11) NOT NULL,
+  `start_date` datetime NOT NULL,
+  `end_date` datetime NOT NULL,
+  `processor_subscription_id` varchar(100) default NULL,
+  PRIMARY KEY  (`id`)
+);
+
+DROP TABLE IF EXISTS `transactions`;
+CREATE TABLE IF NOT EXISTS `transactions` (
+  `id` int(11) NOT NULL auto_increment,
+  `user_id` int(11) NOT NULL,
+  `product_price_id` int(11) NOT NULL,
+  `date` datetime NOT NULL,
+  `processor_transaction_id` varchar(50) NOT NULL,
+  `subscription_id` int(11) NOT NULL,
+  `amount_paid` int(11) NOT NULL,
+  `currency` varchar(3) NOT NULL,
   PRIMARY KEY  (`id`)
 );

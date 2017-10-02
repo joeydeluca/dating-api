@@ -2,9 +2,10 @@ package com.joe.dating.domain.photo;
 
 import com.joe.dating.cloud.CloudStorage;
 import com.joe.dating.domain.user.User;
-import com.joe.dating.domain.user.UserRepository;
 import com.joe.dating.domain.user.UserService;
 import org.imgscalr.Scalr;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,7 +19,7 @@ import java.net.URL;
 
 @Component
 public class PhotoService {
-
+    private final Logger logger = LoggerFactory.getLogger(PhotoService.class);
     private final CloudStorage cloudStorage;
     private final PhotoRepository photoRepository;
     private final UserService userService;
@@ -42,9 +43,10 @@ public class PhotoService {
         photo.setProfilePhoto(false);
         photo = photoRepository.save(photo);
 
-        String photoUrl = cloudStorage.uploadImage(getInputStream(resizedBufferedImage), getLargePhotoFilename(photo.getId()));
+        cloudStorage.uploadImage(getInputStream(resizedBufferedImage), getLargePhotoFilename(photo.getId()));
+        photo.setLargeFilename(getLargePhotoFilename(photo.getId()));
 
-        photo.setLargeUrl(photoUrl);
+        photo.incrementVersion();
 
         return photoRepository.save(photo);
     }
@@ -56,12 +58,14 @@ public class PhotoService {
         BufferedImage largePhoto = ImageIO.read(largePhotoUrl);
 
         BufferedImage largeBufferedImage = Scalr.crop(largePhoto, x, y, width, height);
-        String largeUrl = cloudStorage.uploadImage(getInputStream(largeBufferedImage), getLargePhotoFilename(photoId));
-        photo.setLargeUrl(largeUrl);
+        cloudStorage.uploadImage(getInputStream(largeBufferedImage), getLargePhotoFilename(photoId));
+        photo.setLargeFilename(getLargePhotoFilename(photoId));
 
         BufferedImage mediumBufferedImage = resize(largeBufferedImage, PHOTO_MEDIUM_WIDTH, PHOTO_MEDIUM_HEIGHT);
-        String mediumUrl = cloudStorage.uploadImage(getInputStream(mediumBufferedImage), getMediumPhotoFilename(photoId));
-        photo.setMediumUrl(mediumUrl);
+        cloudStorage.uploadImage(getInputStream(mediumBufferedImage), getMediumPhotoFilename(photoId));
+        photo.setMediumFilename(getMediumPhotoFilename(photoId));
+
+        photo.incrementVersion();
 
         return photoRepository.save(photo);
     }
@@ -96,8 +100,21 @@ public class PhotoService {
 
         photoRepository.delete(photo);
 
-        cloudStorage.deleteImage(photo.getLargeUrl());
-        cloudStorage.deleteImage(photo.getMediumUrl());
+        if(photo.getLargeFilename() != null) {
+            try {
+                cloudStorage.deleteImage(getLargePhotoFilename(photo.getId()));
+            } catch (Exception e) {
+                logger.error("Error deleting file from CloudStorage. large photoId=" + photoId, e);
+            }
+        }
+
+        if(photo.getMediumFilename() != null) {
+            try {
+                cloudStorage.deleteImage(getMediumPhotoFilename(photo.getId()));
+            } catch (Exception e) {
+                logger.error("Error deleting file from CloudStorage. medium photoId=" + photoId, e);
+            }
+        }
     }
 
     private BufferedImage resize(BufferedImage bufferedImage, int targetWidth, int targetHeight) throws IOException {
