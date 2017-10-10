@@ -4,12 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 @Component
 public class MailgunVerificationService implements EmailVerificationService {
@@ -29,22 +24,22 @@ public class MailgunVerificationService implements EmailVerificationService {
     public boolean verify(String email) {
         logger.info("Performing Mailgun email verification; email={}", email);
 
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("address", email);
+        MailgunVerificationResponse response;
+        try {
+            response = new RestTemplateBuilder().basicAuthorization("api", verificationKey).build()
+                    .getForObject(url + "?address=" + email, MailgunVerificationResponse.class);
+        }
+        catch(Exception e) {
+            logger.info("Email failed BrightVerify check; exception={}", e);
+            return false;
+        }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        HttpEntity<MultiValueMap<String, String>> httpEntity = new HttpEntity<>(params, headers);
-
-        MailgunVerificationResponse response = new RestTemplateBuilder().basicAuthorization("api", verificationKey).build()
-                .postForObject(url, httpEntity, MailgunVerificationResponse.class);
-
-        if(response != null && response.isValid() && !response.isDisposableAddress() && !response.isRoleAddress()) {
+        if(response != null && (!response.isValid() || response.isDisposableAddress() || response.isRoleAddress())) {
             logger.info("Email failed BrightVerify check; email={}", email);
-            return true;
+            return false;
         }
 
         logger.info("Email passed Mailgun verification; email={}", email);
-        return false;
+        return true;
     }
 }

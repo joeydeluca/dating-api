@@ -7,21 +7,26 @@ import com.joe.dating.domain.user.models.Gender;
 import com.joe.dating.domain.user.models.Profile;
 import com.joe.dating.domain.validaiton.ValidationException;
 import com.joe.dating.email_verification.EmailVerificationService;
+import com.joe.dating.rest.RecipientProfile;
 import com.joe.dating.security.AuthContext;
 import com.joe.dating.security.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.domain.Specifications;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.joe.dating.config.CacheConfig.PROFILE_SEARCH_CACHE;
+import static com.joe.dating.config.CacheConfig.USER_BY_ID_CACHE;
 
 /**
  * Created by Joe Deluca on 11/21/2016.
@@ -48,6 +53,7 @@ public class UserService {
         this.enableEmailVerification = enableEmailVerification;
     }
 
+    @Cacheable(cacheNames = USER_BY_ID_CACHE, key = "#id")
     public User findOne(Long id) {
         User user = userRepository.findOne(id);
         if(user == null) {
@@ -63,12 +69,8 @@ public class UserService {
         if(userRepository.findByUsername(username).size() > 0) {
             throw new ValidationException("username", "Username must be unique");
         }
-        try {
-            if (enableEmailVerification && !emailVerificationService.verify(email)) {
-                throw new ValidationException("email", "Cannot send to the email provided");
-            }
-        } catch(Exception e) {
-            logger.error("Error when verifying email. exception={}", e.getMessage());
+        if (enableEmailVerification && !emailVerificationService.verify(email)) {
+            throw new ValidationException("email", "Cannot send to the email provided");
         }
 
         User user = new User();
@@ -91,6 +93,7 @@ public class UserService {
                 );
     }
 
+    @CacheEvict(cacheNames = USER_BY_ID_CACHE, key = "#userId")
     public User completeUserJoin(Long userId, User joinUser) {
         User existingUser = findOne(userId);
         existingUser.setProfile(joinUser.getProfile());
@@ -99,18 +102,21 @@ public class UserService {
         return userRepository.save(existingUser);
     }
 
+    @CacheEvict(cacheNames = USER_BY_ID_CACHE, key = "#userId")
     public User updateProfile(Long userId, Profile profile) {
         User existingUser = findOne(userId);
         existingUser.setProfile(profile);
         return userRepository.save(existingUser);
     }
 
+    @CacheEvict(cacheNames = USER_BY_ID_CACHE, key = "#userId")
     public User updateEmailSubscription(Long userId, EmailSubscription emailSubscription) {
         User existingUser = findOne(userId);
         existingUser.setEmailSubscription(emailSubscription);
         return userRepository.save(existingUser);
     }
 
+    @CacheEvict(cacheNames = USER_BY_ID_CACHE, key = "#userId")
     public void delete(Long userId) {
         logger.info("Deleting user {}", userId);
         User user = findOne(userId);
@@ -118,13 +124,14 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public Page<User> searchProfiles(AuthContext authContext, Pageable pageable, int ageFrom, int ageTo, String countryId, String regionId, String cityId) {
+    @Cacheable(PROFILE_SEARCH_CACHE)
+    public Page<RecipientProfile> searchProfiles(Gender gender, Gender genderSeeking, int pageNumber, int pageSize, int ageFrom, int ageTo, String countryId, String regionId, String cityId) {
         List<Specification<User>> specifications = new ArrayList<>();
         specifications.add(UserSpecification.hasCommonFields());
         specifications.add(UserSpecification.ageFrom(ageFrom));
         specifications.add(UserSpecification.ageTo(ageTo));
-        specifications.add(UserSpecification.gender(authContext.getGenderSeeking().name()));
-        specifications.add(UserSpecification.genderSeeking(authContext.getGender().name()));
+        specifications.add(UserSpecification.gender(genderSeeking.name()));
+        specifications.add(UserSpecification.genderSeeking(gender.name()));
 
         if(countryId != null && countryId.length() > 0) {
             specifications.add(UserSpecification.hasCountry(countryId));
@@ -143,11 +150,21 @@ public class UserService {
             result = Specifications.where(result).and(specifications.get(i));
         }
 
-        return userRepository.findAll(result, pageable);
+        final PageRequest page = new PageRequest(
+                pageNumber,
+                pageSize,
+                new Sort(
+                    new Sort.Order(Sort.Direction.DESC, "profile.hasProfilePhoto"),
+                    new Sort.Order(Sort.Direction.DESC, "createdDate")
+                )
+        );
+
+        return ((Page<User>)userRepository.findAll(result, page)).map(user -> new RecipientProfile(user));
     }
 
-    private Profile userToProfile(User user) {
-        return user.getProfile();
+    @CacheEvict(cacheNames = USER_BY_ID_CACHE, key = "#user.id")
+    public User save(User user) {
+        return userRepository.save(user);
     }
 
 }

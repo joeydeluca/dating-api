@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `CITY` (`city_id`),
   KEY `IS_DELETED` (`is_deleted`)
 );
+alter table users add column has_profile_photo varchar(1) default 'N';
 
 DROP TABLE IF EXISTS `photos`;
 CREATE TABLE IF NOT EXISTS `photos` (

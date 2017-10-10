@@ -12,9 +12,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.Arrays;
 
 @Component
 public class MailgunEmailSender implements EmailSender {
@@ -38,6 +35,9 @@ public class MailgunEmailSender implements EmailSender {
     @Async
     @Override
     public void sendEmail(Email email) {
+        logger.info("Sending email. type=" + email.getClass().getSimpleName() + ";email="+email.getRecipientEmailAddress());
+
+
         if(!isEmailEnabled) {
             logger.info("Email sending is not enabled. email=" + email.getRecipientEmailAddress());
             return;
@@ -63,6 +63,9 @@ public class MailgunEmailSender implements EmailSender {
 
         if(!response.getStatusCode().is2xxSuccessful()) {
             logger.error("Failed to send email with Mailgun:" + response.getStatusCode());
+        }
+        else {
+            logger.info("Email sent. type=" + email.getClass().getSimpleName() + ";email="+email.getRecipientEmailAddress());
         }
     }
 

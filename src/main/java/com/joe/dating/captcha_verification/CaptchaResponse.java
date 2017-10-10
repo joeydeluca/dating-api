@@ -3,6 +3,7 @@ package com.joe.dating.captcha_verification;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Arrays;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -34,5 +35,14 @@ public class CaptchaResponse {
 
     public void setErrorCodes(List<String> errorCodes) {
         this.errorCodes = errorCodes;
+    }
+
+    @Override
+    public String toString() {
+        return "CaptchaResponse{" +
+                "success=" + success +
+                ", hostname='" + hostname + '\'' +
+                ", errorCodes=" + errorCodes != null ? Arrays.toString(errorCodes.toArray()) : "" +
+                '}';
     }
 }

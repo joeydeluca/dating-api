@@ -1,8 +1,5 @@
 package com.joe.dating.domain.user;
 
-import com.joe.dating.domain.location.City;
-import com.joe.dating.domain.location.Country;
-import com.joe.dating.domain.location.Region;
 import com.joe.dating.domain.user.models.CompletionStatus;
 import com.joe.dating.domain.user.models.Profile;
 import org.springframework.data.jpa.domain.Specification;
@@ -26,28 +23,28 @@ public class UserSpecification {
 
     public static Specification<User> hasCountry(String countryId) {
         return (root, query, cb) -> {
-            Join<Profile, Country> country =
-                    root.join("profile").join("country");
+            Join<User, Profile> profile =
+                    root.join("profile");
 
-            return cb.equal(country.get("countryId"), countryId);
+            return cb.equal(profile.get("countryId"), countryId);
         };
     }
 
     public static Specification<User> hasRegion(String regionId) {
         return (root, query, cb) -> {
-            Join<Profile, Region> region =
-                    root.join("profile").join("region");
+            Join<User, Profile> profile =
+                    root.join("profile");
 
-            return cb.equal(region.get("regionId"), regionId);
+            return cb.equal(profile.get("regionId"), regionId);
         };
     }
 
     public static Specification<User> hasCity(String cityId) {
         return (root, query, cb) -> {
-            Join<Profile, City> city =
-                    root.join("profile").join("city");
+            Join<User, Profile> profile =
+                    root.join("profile");
 
-            return cb.equal(city.get("cityId"), cityId);
+            return cb.equal(profile.get("cityId"), cityId);
         };
     }
 

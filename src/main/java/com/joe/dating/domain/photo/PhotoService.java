@@ -88,6 +88,12 @@ public class PhotoService {
         }
 
         photo.setProfilePhoto(true);
+
+        if(!user.getProfile().getHasProfilePhoto()) {
+            user.getProfile().setHasProfilePhoto(true);
+            userService.save(user);
+        }
+
         return photoRepository.save(photo);
     }
 

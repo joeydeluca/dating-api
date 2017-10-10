@@ -5,8 +5,8 @@ import com.joe.dating.common.NiceTryException;
 import com.joe.dating.common.NotFoundException;
 import com.joe.dating.domain.payment.Subscription;
 import com.joe.dating.domain.payment.SubscriptionRepository;
-import com.joe.dating.domain.user.UserService;
 import com.joe.dating.domain.user.User;
+import com.joe.dating.domain.user.UserService;
 import com.joe.dating.domain.user.models.EmailSubscription;
 import com.joe.dating.domain.user.models.Profile;
 import com.joe.dating.security.AuthContext;
@@ -138,11 +138,9 @@ public class UserResource {
 
 
     ) {
-
         AuthContext context = this.authService.verifyToken(authToken);
 
-        return ResponseEntity.ok(userService.searchProfiles(context, pageable, ageFrom, ageTo, countryId, regionId, cityId)
-                        .map(user -> new RecipientProfile(user)));
+        return ResponseEntity.ok(userService.searchProfiles(context.getGender(), context.getGenderSeeking(), pageable.getPageNumber(), pageable.getPageSize(), ageFrom, ageTo, countryId, regionId, cityId));
     }
 
     @GetMapping("/payment-status")

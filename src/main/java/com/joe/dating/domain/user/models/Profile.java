@@ -1,5 +1,7 @@
 package com.joe.dating.domain.user.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.joe.dating.common.Util;
 import com.joe.dating.domain.StringListConverter;
 import com.joe.dating.domain.location.City;
 import com.joe.dating.domain.location.Country;
@@ -22,20 +24,29 @@ public class Profile {
     @ManyToOne()
     @JoinColumn(name="city_id")
     private City city;
+    @Column(name="city_id", insertable=false, updatable=false)
+    @JsonIgnore
+    private Long cityId;
 
     @NotFound(action= NotFoundAction.IGNORE)
     @ManyToOne()
     @JoinColumn(name="state_id")
     private Region region;
+    @Column(name="state_id", insertable=false, updatable=false)
+    @JsonIgnore
+    private Long regionId;
 
     @NotFound(action= NotFoundAction.IGNORE)
     @ManyToOne()
     @JoinColumn(name="country_id")
     private Country country;
+    @Column(name="country_id", insertable=false, updatable=false)
+    @JsonIgnore
+    private Long countryId;
 
     @OrderBy("isProfilePhoto DESC")
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name="profile_id")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "profileId")
+    //@JoinColumn(name="profile_id")
     private List<Photo> photos;
 
     @Embedded
@@ -123,6 +134,8 @@ public class Profile {
     private String partnerDescription;
     @Column(name = "perfect_date")
     private String perfectDate;
+    @Column(name = "has_profile_photo")
+    private String hasProfilePhoto;
 
     public List<String> getPartnerBodyType() {
         return partnerBodyType;
@@ -420,6 +433,14 @@ public class Profile {
 
     public void setPhotos(List<Photo> photos) {
         this.photos = photos;
+    }
+
+    public boolean getHasProfilePhoto() {
+        return Util.getBooleanFromDb(hasProfilePhoto);
+    }
+
+    public void setHasProfilePhoto(boolean hasProfilePhoto) {
+        this.hasProfilePhoto = Util.getBooleanForDb(hasProfilePhoto);
     }
 
     public String getProfilePhotoUrl() {

@@ -9,6 +9,7 @@ import com.joe.dating.domain.message.Message;
 import com.joe.dating.domain.message.MessageRepository;
 import com.joe.dating.domain.profileview.ProfileView;
 import com.joe.dating.domain.profileview.ProfileViewRepository;
+import com.joe.dating.domain.recipientprofile.RecipientProfileService;
 import com.joe.dating.domain.user.User;
 import com.joe.dating.domain.user.UserService;
 import com.joe.dating.email_sending.EmailSender;
@@ -32,11 +33,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Created by Joe Deluca on 11/21/2016.
@@ -47,6 +43,7 @@ public class RecipientProfileResource {
 
     private static final Logger logger = LoggerFactory.getLogger(RecipientProfileResource.class);
 
+    private final RecipientProfileService recipientProfileService;
     private final AuthService authService;
     private final FlirtRepository flirtRepository;
     private final FavoriteRepository favoriteRepository;
@@ -56,7 +53,8 @@ public class RecipientProfileResource {
     private final EmailSender emailSender;
     private final Configuration freemarkerConfiguration;
 
-    public RecipientProfileResource(AuthService authService, FlirtRepository flirtRepository, FavoriteRepository favoriteRepository, UserService userService, MessageRepository messageRepository, ProfileViewRepository profileViewRepository, EmailSender emailSender, Configuration freemarkerConfiguration) {
+    public RecipientProfileResource(RecipientProfileService recipientProfileService, AuthService authService, FlirtRepository flirtRepository, FavoriteRepository favoriteRepository, UserService userService, MessageRepository messageRepository, ProfileViewRepository profileViewRepository, EmailSender emailSender, Configuration freemarkerConfiguration) {
+        this.recipientProfileService = recipientProfileService;
         this.authService = authService;
         this.flirtRepository = flirtRepository;
         this.favoriteRepository = favoriteRepository;
@@ -79,6 +77,7 @@ public class RecipientProfileResource {
             profileView.setFromUser(new User(authContext.getUserId()));
             profileView.setToUser(new User(recipientUserId));
             profileViewRepository.save(profileView);
+            recipientProfileService.evictProfileViewCache(recipientUserId);
         });
 
         User user = userService.findOne(recipientUserId);
@@ -109,6 +108,8 @@ public class RecipientProfileResource {
         flirt.setToUser(recipientUser);
         flirtRepository.save(flirt);
 
+        recipientProfileService.evictFlirtsCache(recipientUser.getId());
+
         emailSender.sendEmail(new FlirtAlertEmail(user, recipientUser, freemarkerConfiguration));
 
         return ResponseEntity.accepted().build();
@@ -135,6 +136,9 @@ public class RecipientProfileResource {
         favorite.setToUser(recipientUser);
         favoriteRepository.save(favorite);
 
+        recipientProfileService.evictFavoritesCache(authContext.getUserId());
+        recipientProfileService.evictFavoritesCache(recipientUserId);
+
         emailSender.sendEmail(new FavoriteAlertEmail(user, recipientUser, freemarkerConfiguration));
 
         return ResponseEntity.accepted().build();
@@ -155,6 +159,9 @@ public class RecipientProfileResource {
             return ResponseEntity.accepted().build();
         }
 
+        recipientProfileService.evictFavoritesCache(authContext.getUserId());
+        recipientProfileService.evictFavoritesCache(recipientUserId);
+
         favoriteRepository.delete(favorite);
 
         return ResponseEntity.accepted().build();
@@ -165,10 +172,7 @@ public class RecipientProfileResource {
             @RequestHeader(value = "authorization") String authToken
     ) {
         AuthContext authContext = this.authService.verifyToken(authToken);
-
-        return ResponseEntity.ok(
-            messageRepository.findByFromUserIdOrToUserId(authContext.getUserId(), authContext.getUserId())
-        );
+        return ResponseEntity.ok(recipientProfileService.getMessages(authContext.getUserId()));
     }
 
     @PostMapping("/{recipientUserId}/message")
@@ -198,6 +202,9 @@ public class RecipientProfileResource {
 
         messageRepository.save(message);
 
+        recipientProfileService.evictMessagesCache(authContext.getUserId());
+        recipientProfileService.evictMessagesCache(recipientUserId);
+
         emailSender.sendEmail(new MessageAlertEmail(user, recipientUser, freemarkerConfiguration));
 
         return ResponseEntity.ok(message);
@@ -225,10 +232,12 @@ public class RecipientProfileResource {
         messages.stream().filter((message -> message.getReadDate() == null)).forEach(message -> {
             message.setReadDate(new Date());
             readMessages.add(message);
+            messageRepository.save(readMessages);
+            recipientProfileService.evictMessagesCache(authContext.getUserId());
+            recipientProfileService.evictMessagesCache(recipientUserId);
+            recipientProfileService.getMessages(authContext.getUserId()); // fill cache
             logger.info("Marking message as read; fromProfileId={}, toProfileId={}, messageId={}", authContext.getUserId(), recipientUserId, message.getId());
         });
-
-        messageRepository.save(readMessages);
 
         return ResponseEntity.ok().build();
     }
@@ -238,20 +247,7 @@ public class RecipientProfileResource {
             @RequestHeader(value = "authorization") String authToken
     ) {
         AuthContext authContext = this.authService.verifyToken(authToken);
-
-        FavoritesDto favoritesDto = new FavoritesDto();
-
-        favoriteRepository.findByFromUserIdOrToUserId(authContext.getUserId(), authContext.getUserId())
-                .stream().forEach(favorite -> {
-                    if(favorite.getFromUser().getId().equals(authContext.getUserId())) {
-                        favoritesDto.getMyFavorites().add(new ProfileEvent(favorite.getToUser(), favorite.getDate()));
-                    } else {
-                        favoritesDto.getFavoritedMe().add(new ProfileEvent(favorite.getFromUser(), favorite.getDate()));
-                    }
-                }
-        );
-
-        return ResponseEntity.ok(favoritesDto);
+        return ResponseEntity.ok(recipientProfileService.getFavorites(authContext.getUserId()));
     }
 
     @GetMapping("/flirts")
@@ -259,12 +255,7 @@ public class RecipientProfileResource {
             @RequestHeader(value = "authorization") String authToken
     ) {
         AuthContext authContext = this.authService.verifyToken(authToken);
-
-        return ResponseEntity.ok(
-                flirtRepository.findByToUserId(authContext.getUserId())
-                        .stream().map(flirt -> new ProfileEvent(flirt.getFromUser(), flirt.getDate())).collect(Collectors.toList())
-
-        );
+        return ResponseEntity.ok(recipientProfileService.getFlirts(authContext.getUserId()));
     }
 
     @GetMapping("/profile-views")
@@ -272,11 +263,8 @@ public class RecipientProfileResource {
             @RequestHeader(value = "authorization") String authToken
     ) {
         AuthContext authContext = this.authService.verifyToken(authToken);
-
         return ResponseEntity.ok(
-                profileViewRepository.findByToUserId(authContext.getUserId())
-                    .stream()
-                        .map(view -> new ProfileEvent(view.getFromUser(), view.getDate())).collect(Collectors.toList())
+                recipientProfileService.getProfileViews(authContext.getUserId())
         );
     }
 
@@ -284,5 +272,7 @@ public class RecipientProfileResource {
     private void doAsync(Runnable f) {
         f.run();
     }
+
+
 
 }

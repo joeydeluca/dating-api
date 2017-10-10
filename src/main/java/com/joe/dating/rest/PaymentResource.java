@@ -6,6 +6,7 @@ import com.joe.dating.security.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,6 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.joe.dating.config.CacheConfig.PAYMENT_CACHE;
 
 @RestController
 @RequestMapping("/api/payment")
@@ -100,6 +103,7 @@ public class PaymentResource {
         return true;
     }
 
+    @Cacheable(cacheNames = PAYMENT_CACHE, key = "#root.methodName")
     @GetMapping("/request")
     public ResponseEntity<PaymentPageData> request(@RequestHeader(value = "authorization") String authToken) {
         this.authService.verifyToken(authToken);
