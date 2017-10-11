@@ -6,6 +6,7 @@ import com.joe.dating.domain.user.UserService;
 import org.imgscalr.Scalr;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,6 +17,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+
+import static com.joe.dating.config.CacheConfig.USER_BY_ID_CACHE;
 
 @Component
 public class PhotoService {
@@ -51,7 +54,8 @@ public class PhotoService {
         return photoRepository.save(photo);
     }
 
-    public Photo cropPhoto(Long photoId, int x, int y, int width, int height) throws IOException {
+    @CacheEvict(cacheNames = USER_BY_ID_CACHE, key = "#userId")
+    public Photo cropPhoto(Long userId, Long photoId, int x, int y, int width, int height) throws IOException {
         Photo photo = photoRepository.getOne(photoId);
 
         URL largePhotoUrl = new URL(photo.getLargeUrl());
@@ -70,6 +74,7 @@ public class PhotoService {
         return photoRepository.save(photo);
     }
 
+    @CacheEvict(cacheNames = USER_BY_ID_CACHE, key = "#userId")
     public Photo setProfilePhoto(Long userId, Long photoId) {
         Photo photo = photoRepository.getOne(photoId);
 
@@ -97,6 +102,7 @@ public class PhotoService {
         return photoRepository.save(photo);
     }
 
+    @CacheEvict(cacheNames = USER_BY_ID_CACHE, key = "#userId")
     public void deletePhoto(Long userId, Long photoId) {
         Photo photo = photoRepository.getOne(photoId);
 

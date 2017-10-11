@@ -3,6 +3,7 @@ package com.joe.dating.domain.paypal;
 import com.joe.dating.domain.payment.*;
 import com.joe.dating.domain.user.User;
 import com.joe.dating.domain.user.UserRepository;
+import com.joe.dating.domain.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -19,12 +20,14 @@ public class PayPalService {
     private final SubscriptionRepository subscriptionRepository;
     private final ProductPriceRepository productPriceRepository;
     private final UserRepository userRepository;
+    private UserService userService;
 
-    public PayPalService(IPNRepository ipnRepository, SubscriptionRepository subscriptionRepository, ProductPriceRepository productPriceRepository, UserRepository userRepository) {
+    public PayPalService(IPNRepository ipnRepository, SubscriptionRepository subscriptionRepository, ProductPriceRepository productPriceRepository, UserRepository userRepository, UserService userService) {
         this.ipnRepository = ipnRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.productPriceRepository = productPriceRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @Async
@@ -79,7 +82,7 @@ public class PayPalService {
         calendar.add(Calendar.DAY_OF_YEAR, productPrice.getDurationDays());
         Date endDate = calendar.getTime();
 
-        Subscription subscription = subscriptionRepository.findByUserId(user.getId());
+        Subscription subscription = userService.getSubscription(user.getId());
         if(subscription == null) {
             logger.info("Creating new subscription for user {}", user.getId());
             subscription = new Subscription();

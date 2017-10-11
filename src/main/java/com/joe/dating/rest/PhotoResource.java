@@ -45,9 +45,10 @@ public class PhotoResource {
             @RequestHeader(value = "authorization") String authToken,
             @RequestBody PhotoCropDto photoCropDto) throws IOException {
 
-        this.authService.verifyToken(authToken);
+        AuthContext authContext = this.authService.verifyToken(authToken);
 
         Photo photo = photoService.cropPhoto(
+                authContext.getUserId(),
                 photoId,
                 photoCropDto.getX(),
                 photoCropDto.getY(),

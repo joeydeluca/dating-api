@@ -1,6 +1,8 @@
 package com.joe.dating.domain.user;
 
 import com.joe.dating.common.Util;
+import com.joe.dating.domain.payment.Subscription;
+import com.joe.dating.domain.payment.SubscriptionRepository;
 import com.joe.dating.domain.user.models.CompletionStatus;
 import com.joe.dating.domain.user.models.EmailSubscription;
 import com.joe.dating.domain.user.models.Gender;
@@ -39,18 +41,21 @@ public class UserService {
     private UserRepository userRepository;
     private EmailVerificationService emailVerificationService;
     private AuthService authService;
+    private final SubscriptionRepository subscriptionRepository;
     private boolean enableEmailVerification;
 
     public UserService(
             UserRepository userRepository,
             EmailVerificationService emailVerificationService,
             AuthService authService,
+            SubscriptionRepository subscriptionRepository,
             @Value("${email.validation.enable}") boolean enableEmailVerification
     ) {
         this.userRepository = userRepository;
         this.emailVerificationService = emailVerificationService;
         this.authService = authService;
         this.enableEmailVerification = enableEmailVerification;
+        this.subscriptionRepository = subscriptionRepository;
     }
 
     @Cacheable(cacheNames = USER_BY_ID_CACHE, key = "#id")
@@ -165,6 +170,15 @@ public class UserService {
     @CacheEvict(cacheNames = USER_BY_ID_CACHE, key = "#user.id")
     public User save(User user) {
         return userRepository.save(user);
+    }
+
+    public Subscription getSubscription(Long userId) {
+        List<Subscription> subscription = subscriptionRepository.findByUserId(userId);
+        if(subscription == null || subscription.size() == 0) {
+            return null;
+        }
+
+        return subscription.get(subscription.size()-1);
     }
 
 }

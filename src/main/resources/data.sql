@@ -323,8 +323,8 @@ INSERT INTO `users` (`id`, `site_id`, `email`, `username`, `password`, `is_paid`
 
 
 INSERT INTO `photos` (`id`, `profile_id`, `original_filename`, `medium_filename`, `thumb_filename`, `large_filename`, `is_profile_photo`, `insert_date`) VALUES
-(61, 37, '18.jpg', 'https://storage.googleapis.com/dating-176518.appspot.com/1_medium.jpg', 'cropped_18_thumb.jpg', 'https://storage.googleapis.com/dating-176518.appspot.com/noimage.jpeg', 'Y', '2013-03-06'),
-(63, 1827, '18.jpg', 'https://storage.googleapis.com/dating-176518.appspot.com/1_medium.jpg', 'cropped_18_thumb.jpg', 'https://storage.googleapis.com/dating-176518.appspot.com/noimage.jpeg', 'Y', '2013-03-06'),
+(61, 37, '', '16486_medium.jpg', '', '16486_large.jpg', 'Y', '2013-03-06'),
+(63, 1827, '18.jpg', '1_medium.jpg', 'cropped_18_thumb.jpg', 'noimage.jpeg', 'Y', '2013-03-06'),
 (62, 1, '3910.jpg', 'medium_3910.jpg', 'thumb_3910.jpg', 'large_3910.jpg', 'Y', '2013-03-09'),
 (60, 52, '3bb0362.jpg', 'cropped_3bb0362.jpg', 'cropped_3bb0362_thumb.jpg', 'large_3bb0362.jpg', 'Y', '2013-03-05'),
 (86, 221, '484831_115224418658096_17938391_n.jpg', 'cropped_484831_115224418658096_17938391_n.jpg', 'cropped_484831_115224418658096_17938391_n_thumb.jpg', 'large_484831_115224418658096_17938391_n.jpg', 'Y', '2013-03-15');

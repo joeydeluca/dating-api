@@ -156,7 +156,7 @@ public class UserResource {
             @RequestHeader(value = "authorization") String authToken) {
         AuthContext authContext = this.authService.verifyToken(authToken);
 
-        Subscription subscription = subscriptionRepository.findByUserId(authContext.getUserId());
+        Subscription subscription = userService.getSubscription(authContext.getUserId());
         if(subscription == null) {
             throw new NotFoundException();
         }
