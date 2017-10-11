@@ -3,6 +3,7 @@ package com.joe.dating.domain.paypal;
 import com.joe.dating.domain.payment.*;
 import com.joe.dating.domain.user.User;
 import com.joe.dating.domain.user.UserRepository;
+import com.joe.dating.domain.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,8 @@ public class PayPalServiceIT {
     ProductPriceRepository productPriceRepository;
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    UserService userService;
 
     private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -53,7 +56,7 @@ public class PayPalServiceIT {
         payPalService.processIPN(IPN, IPN_PARAMS);
 
         User user = userRepository.getOne(userId);
-        Subscription subscription = subscriptionRepository.findByUserId(userId);
+        Subscription subscription = userService.getSubscription(userId);
         List<Transaction> transactions = subscription.getTransactions();
         ProductPrice productPrice = productPriceRepository.findOne(2l);
 
