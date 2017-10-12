@@ -28,7 +28,9 @@ public class RecipientProfile {
         LocalDate birthDate = user.getBirthDate();
         LocalDate today = LocalDate.now();
 
-        setAge(Period.between(birthDate, today).getYears());
+        if(birthDate != null) {
+            setAge(Period.between(birthDate, today).getYears());
+        }
 
         setProfilePhotoUrl(user.getProfile().getProfilePhotoUrl());
     }

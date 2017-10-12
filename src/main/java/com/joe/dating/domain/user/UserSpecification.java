@@ -17,7 +17,8 @@ public class UserSpecification {
                     cb.and(
                             cb.equal(root.get("isDeleted"), "N"),
                             cb.equal(root.get("completionStatus"), CompletionStatus.COMPLETE.getId()),
-                            cb.equal(root.get("siteId"), 3)
+                            cb.equal(root.get("siteId"), 3),
+                            cb.isNotNull(root.get("birthDate"))
                     );
     }
 
