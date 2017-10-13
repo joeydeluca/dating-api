@@ -27,7 +27,7 @@ public class PhotoService {
     private final PhotoRepository photoRepository;
     private final UserService userService;
 
-    private final int PHOTO_INITIAL_UPLOAD_TARGET_SIZE = 1000;
+    private final int PHOTO_LARGE_WIDTH = 500;
     private final int PHOTO_MEDIUM_WIDTH = 191;
     private final int PHOTO_MEDIUM_HEIGHT = 212;
 
@@ -38,15 +38,15 @@ public class PhotoService {
     }
 
     public Photo createPhoto(Long profileId, MultipartFile file) throws IOException {
-        BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
-        BufferedImage resizedBufferedImage = Scalr.resize(bufferedImage, Scalr.Method.ULTRA_QUALITY,  Scalr.Mode.FIT_TO_WIDTH, PHOTO_INITIAL_UPLOAD_TARGET_SIZE);
+        BufferedImage originalImage = ImageIO.read(file.getInputStream());
+        BufferedImage largeImage = Scalr.resize(originalImage, Scalr.Method.ULTRA_QUALITY,  Scalr.Mode.AUTOMATIC, PHOTO_LARGE_WIDTH);
 
         Photo photo = new Photo();
         photo.setProfileId(profileId);
         photo.setProfilePhoto(false);
         photo = photoRepository.save(photo);
 
-        cloudStorage.uploadImage(getInputStream(resizedBufferedImage), getLargePhotoFilename(photo.getId()));
+        cloudStorage.uploadImage(getInputStream(largeImage), getLargePhotoFilename(photo.getId()));
         photo.setLargeFilename(getLargePhotoFilename(photo.getId()));
 
         photo.incrementVersion();
@@ -59,13 +59,11 @@ public class PhotoService {
         Photo photo = photoRepository.getOne(photoId);
 
         URL largePhotoUrl = new URL(photo.getLargeUrl());
-        BufferedImage largePhoto = ImageIO.read(largePhotoUrl);
+        BufferedImage largeImage = ImageIO.read(largePhotoUrl);
 
-        BufferedImage largeBufferedImage = Scalr.crop(largePhoto, x, y, width, height);
-        cloudStorage.uploadImage(getInputStream(largeBufferedImage), getLargePhotoFilename(photoId));
-        photo.setLargeFilename(getLargePhotoFilename(photoId));
+        BufferedImage largeCroppedImage = Scalr.crop(largeImage, x, y, width, height);
+        BufferedImage mediumBufferedImage = Scalr.resize(largeCroppedImage, Scalr.Method.ULTRA_QUALITY,  Scalr.Mode.AUTOMATIC, PHOTO_MEDIUM_WIDTH, PHOTO_MEDIUM_HEIGHT);
 
-        BufferedImage mediumBufferedImage = resize(largeBufferedImage, PHOTO_MEDIUM_WIDTH, PHOTO_MEDIUM_HEIGHT);
         cloudStorage.uploadImage(getInputStream(mediumBufferedImage), getMediumPhotoFilename(photoId));
         photo.setMediumFilename(getMediumPhotoFilename(photoId));
 
@@ -127,10 +125,6 @@ public class PhotoService {
                 logger.error("Error deleting file from CloudStorage. medium photoId=" + photoId, e);
             }
         }
-    }
-
-    private BufferedImage resize(BufferedImage bufferedImage, int targetWidth, int targetHeight) throws IOException {
-        return Scalr.resize(bufferedImage, Scalr.Method.ULTRA_QUALITY,  Scalr.Mode.FIT_TO_WIDTH, targetWidth, targetHeight);
     }
 
     private InputStream getInputStream(BufferedImage bufferedImage) throws IOException {
