@@ -42,7 +42,7 @@ public class User extends DatingEntity {
     @Column(name = "gender_seeking", updatable = false)
     private String genderSeeking;
 
-    @Column(name = "birth_date", columnDefinition="DATE", updatable = false)
+    @Column(name = "birth_date", columnDefinition="DATE")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate birthDate;
 
