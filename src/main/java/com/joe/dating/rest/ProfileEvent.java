@@ -37,10 +37,12 @@ public class ProfileEvent {
         setCity(profile.getCity());
         setEventCreatedDate(eventCreatedDate);
 
-        LocalDate birthDate = user.getBirthDate();
         LocalDate today = LocalDate.now();
+        LocalDate birthDate = user.getBirthDate();
+        if(birthDate != null) {
+            setAge(Period.between(birthDate, today).getYears());
+        }
 
-        setAge(Period.between(birthDate, today).getYears());
     }
 
     public Long getUserId() {
