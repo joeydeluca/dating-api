@@ -41,7 +41,8 @@ public class SupportResource {
             PROFILE_VIEWS_BY_ID_CACHE,
             FLIRTS_BY_ID_CACHE,
             FAVORITES_BY_ID_CACHE,
-            MESSAGES_BY_ID_CACHE
+            MESSAGES_BY_ID_CACHE,
+            PAYMENT_CACHE
     }, allEntries = true)
     @GetMapping("cache-evict")
     public void evictCache() {
