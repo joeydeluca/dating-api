@@ -6,13 +6,14 @@ import com.joe.dating.domain.user.UserRepository;
 import com.joe.dating.domain.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import javax.transaction.Transactional;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 
+@Transactional
 @Component
 public class PayPalService {
     private final Logger logger = LoggerFactory.getLogger(PayPalService.class);
@@ -30,7 +31,6 @@ public class PayPalService {
         this.userService = userService;
     }
 
-    @Async
     public void processIPN(String rawIPN, Map<String, String> paypalParams) {
         recordIPN(rawIPN, paypalParams);
 
@@ -47,14 +47,20 @@ public class PayPalService {
 
         User user = getUser(ipnPayment.getUserId());
         ProductPrice productPrice = getProductPrice(ipnPayment.getItemNumber());
+
+        logger.info("executing: getSubscription");
         Subscription subscription = getSubscription(user, productPrice, ipnPayment.getSubscrId());
 
+        logger.info("executing: checkForDuplicateTransaction");
         checkForDuplicateTransaction(subscription, ipnPayment.getTxnId());
 
+        logger.info("executing: getNewTransaction");
         Transaction transaction = getNewTransaction(user, subscription, ipnPayment,productPrice);
 
+        logger.info("executing: saveSubscriptionWithNewTransaction");
         saveSubscriptionWithNewTransaction(subscription, transaction);
 
+        logger.info("executing: setUserAsPaid");
         setUserAsPaid(user);
     }
 

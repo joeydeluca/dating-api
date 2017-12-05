@@ -93,6 +93,13 @@ public class SupportResource {
         logger.info("Password successfully reset. email=" + user.getEmail());
     }
 
+    @PostMapping("log")
+    public void log(@RequestBody String message, @RequestHeader(value = "authorization", required = false) String authToken) {
+        AuthContext authContext = this.authService.verifyToken(authToken);
+
+        logger.info("APP_LOG: user_id=" + authContext.getUserId() + "; " + message);
+    }
+
     @CacheEvict(cacheNames = {
             PROFILE_SEARCH_CACHE,
             USER_BY_ID_CACHE,
