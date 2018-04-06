@@ -26,7 +26,7 @@ public class Subscription extends DatingEntity {
     @Column(name = "processor_subscription_id")
     private String processorSubscriptionId;
 
-    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "subscription", cascade = CascadeType.ALL)
     private List<Transaction> transactions;
 
     public User getUser() {

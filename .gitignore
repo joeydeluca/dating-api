@@ -38,3 +38,5 @@ out/
 
 deploy.sh
 application-default.properties
+
+application-prod-db.properties

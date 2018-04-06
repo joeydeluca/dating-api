@@ -97,6 +97,9 @@ public class PayPalService {
             subscription.setProcessorSubscriptionId(processorSubscriptionId);
         }
         subscription.setEndDate(endDate);
+
+        subscription = subscriptionRepository.save(subscription);
+
         return subscription;
     }
 
@@ -108,6 +111,7 @@ public class PayPalService {
         transaction.setCurrency(ipnPayment.getCurrency());
         transaction.setProductPrice(productPrice);
         transaction.setProcessorTransactionId(ipnPayment.getTxnId());
+        transaction.setSubscription(subscription);
         return transaction;
     }
 

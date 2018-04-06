@@ -3,10 +3,7 @@ package com.joe.dating.domain.payment;
 import com.joe.dating.domain.DatingEntity;
 import com.joe.dating.domain.user.User;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import java.util.Date;
 
 @Entity(name = "transactions")
@@ -30,6 +27,10 @@ public class Transaction extends DatingEntity {
 
     @Column(name = "currency")
     private String currency;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscription_id")
+    private Subscription subscription;
 
     public User getUser() {
         return user;
@@ -77,5 +78,13 @@ public class Transaction extends DatingEntity {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public Subscription getSubscription() {
+        return subscription;
+    }
+
+    public void setSubscription(Subscription subscription) {
+        this.subscription = subscription;
     }
 }

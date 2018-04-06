@@ -1,5 +1,7 @@
 package com.joe.dating.domain.paypal;
 
+import org.springframework.util.StringUtils;
+
 import java.util.Map;
 
 public class IPNPayment {
@@ -10,6 +12,7 @@ public class IPNPayment {
     public final static String PAYPAL_SUBSCR_ID = "subscr_id";
     public final static String PAYPAL_PAYMENT_GROSS = "payment_gross";
     public final static String PAYPAL_CURRENCY = "currency";
+    public final static String PAYPAL_MC_CURRENCY = "mc_currency";
     public final static String PAYPAL_TXN_ID = "txn_id";
 
     private TransactionType transactionType;
@@ -24,7 +27,7 @@ public class IPNPayment {
     public IPNPayment(Map<String, String> params) {
         transactionType = TransactionType.valueOf(params.get(PAYPAL_TXN_TYPE));
         paymentStatus = params.containsKey(PAYPAL_PAYMENT_STATUS) ? PaymentStatus.valueOf(params.get(PAYPAL_PAYMENT_STATUS)) : null;
-        currency = params.get(PAYPAL_CURRENCY);
+        currency = getCurrencyFromIPN(params);
         itemNumber = Long.parseLong(params.get(PAYPAL_ITEM_NUMBER));
         subscrId = params.get(PAYPAL_SUBSCR_ID);
         userId = params.containsKey(PAYPAL_CUSTOM) ? Long.parseLong(params.get(PAYPAL_CUSTOM)) : Long.valueOf(0);
@@ -62,5 +65,17 @@ public class IPNPayment {
 
     public String getTxnId() {
         return txnId;
+    }
+
+    private String getCurrencyFromIPN(Map<String, String> params) {
+        if(!StringUtils.isEmpty(params.get(PAYPAL_CURRENCY))) {
+            return params.get(PAYPAL_CURRENCY);
+        }
+
+        if(!StringUtils.isEmpty(params.get(PAYPAL_MC_CURRENCY))) {
+            return params.get(PAYPAL_MC_CURRENCY);
+        }
+
+        return "USD";
     }
 }
