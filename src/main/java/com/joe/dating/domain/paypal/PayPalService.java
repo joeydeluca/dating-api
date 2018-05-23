@@ -13,7 +13,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
 
-@Transactional
+@Transactional(dontRollbackOn = Exception.class)
 @Component
 public class PayPalService {
     private final Logger logger = LoggerFactory.getLogger(PayPalService.class);
@@ -21,7 +21,7 @@ public class PayPalService {
     private final SubscriptionRepository subscriptionRepository;
     private final ProductPriceRepository productPriceRepository;
     private final UserRepository userRepository;
-    private UserService userService;
+    private final UserService userService;
 
     public PayPalService(IPNRepository ipnRepository, SubscriptionRepository subscriptionRepository, ProductPriceRepository productPriceRepository, UserRepository userRepository, UserService userService) {
         this.ipnRepository = ipnRepository;
@@ -134,6 +134,6 @@ public class PayPalService {
 
     private void recordIPN(String rawIPN, Map<String, String> paypalParams) {
         IPNEntity ipnEntity = new IPNEntity(rawIPN, paypalParams.get(IPNPayment.PAYPAL_CUSTOM));
-        ipnRepository.save(ipnEntity);
+        ipnRepository.saveAndFlush(ipnEntity);
     }
 }
