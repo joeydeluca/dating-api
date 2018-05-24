@@ -1,10 +1,14 @@
 package com.joe.dating.domain.paypal;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import java.util.Map;
 
 public class IPNPayment {
+    private final Logger logger = LoggerFactory.getLogger(IPNPayment.class);
+
     public final static String PAYPAL_CUSTOM = "custom";
     public final static String PAYPAL_TXN_TYPE = "txn_type";
     public final static String PAYPAL_PAYMENT_STATUS = "payment_status";
@@ -25,7 +29,12 @@ public class IPNPayment {
     private String txnId;
 
     public IPNPayment(Map<String, String> params) {
-        transactionType = TransactionType.valueOf(params.get(PAYPAL_TXN_TYPE));
+        try {
+            transactionType = TransactionType.valueOf(params.get(PAYPAL_TXN_TYPE));
+        } catch (Exception e) {
+            logger.error("Invalid transaction type: ", params.get(PAYPAL_TXN_TYPE));
+        }
+
         paymentStatus = params.containsKey(PAYPAL_PAYMENT_STATUS) ? PaymentStatus.valueOf(params.get(PAYPAL_PAYMENT_STATUS)) : null;
         currency = getCurrencyFromIPN(params);
         itemNumber = Long.parseLong(params.get(PAYPAL_ITEM_NUMBER));
