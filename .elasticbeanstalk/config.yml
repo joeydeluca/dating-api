@@ -1,14 +1,14 @@
 branch-defaults:
   master:
-    environment: datingApi-prod
+    environment: DatingApiPrd-env
 deploy:
   artifact: artifact.zip
 environment-defaults:
-  datingApi-prod:
+  DatingApiPrd-env:
     branch: null
     repository: null
 global:
-  application_name: dating-api
+  application_name: dating-api-prd
   default_ec2_keyname: AmazonCloud
   default_platform: arn:aws:elasticbeanstalk:us-east-1::platform/Java 8 running on
     64bit Amazon Linux/2.5.4
