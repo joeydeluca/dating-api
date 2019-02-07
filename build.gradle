@@ -1,30 +1,55 @@
-plugins {
-	id 'java'
-	id "com.adarshr.test-logger" version "1.2.0"
+buildscript {
+	ext {
+		springBootVersion = '1.5.2.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+		maven { url "https://repo.spring.io/snapshot" }
+		maven { url "https://repo.spring.io/milestone" }
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
 }
 
-group 'com.java_gradle_circleci'
-version '1.0-SNAPSHOT'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
 
+version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+
+jar {
+	baseName = 'dating-api'
+	version =  '1.0.0'
+}
 
 repositories {
 	mavenCentral()
+	maven { url "https://repo.spring.io/snapshot" }
+	maven { url "https://repo.spring.io/milestone" }
 }
+
 
 dependencies {
-	testCompile group: 'junit', name: 'junit', version: '4.12'
-	compile 'com.atlassian.commonmark:commonmark:0.11.0'
-}
+	compile('org.springframework.boot:spring-boot-starter')
+    compile('org.springframework.boot:spring-boot-starter-web')
+	compile('org.springframework.boot:spring-boot-starter-data-jpa')
+	compile("org.springframework.boot:spring-boot-starter-cache")
+	compile("org.springframework.boot:spring-boot-starter-actuator")
+	compile("com.fasterxml.jackson.core:jackson-databind")
+    compile("org.springframework:spring-jdbc")
+    compile("com.h2database:h2")
+	compile 'com.auth0:java-jwt:3.2.0'
+	compile group: 'org.imgscalr', name: 'imgscalr-lib', version: '4.2'
+	compile group: 'org.freemarker', name: 'freemarker', version: '2.3.23'
+	compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.203'
+	runtime 'mysql:mysql-connector-java'
 
-apply plugin: 'application'
+	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 
-mainClassName = 'com.java_gradle_circleci.Main'
-
-testlogger {
-	theme 'mocha'
-	showExceptions true
-	slowThreshold 1000
-	showSummary true
-	showStandardStreams false
+	testCompile('org.springframework.boot:spring-boot-starter-test')
+	testCompile "org.mockito:mockito-core:2.+"
 }
