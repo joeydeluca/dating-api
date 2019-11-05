@@ -1,5 +1,6 @@
 package com.joe.dating.domain.paypal;
 
+import com.joe.dating.config.CacheConfig;
 import com.joe.dating.domain.payment.*;
 import com.joe.dating.domain.user.User;
 import com.joe.dating.domain.user.UserRepository;
@@ -22,13 +23,15 @@ public class PayPalService {
     private final ProductPriceRepository productPriceRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final CacheConfig cacheConfig;
 
-    public PayPalService(IPNRepository ipnRepository, SubscriptionRepository subscriptionRepository, ProductPriceRepository productPriceRepository, UserRepository userRepository, UserService userService) {
+    public PayPalService(IPNRepository ipnRepository, SubscriptionRepository subscriptionRepository, ProductPriceRepository productPriceRepository, UserRepository userRepository, UserService userService, CacheConfig cacheConfig) {
         this.ipnRepository = ipnRepository;
         this.subscriptionRepository = subscriptionRepository;
         this.productPriceRepository = productPriceRepository;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.cacheConfig = cacheConfig;
     }
 
     public void processIPN(String rawIPN, Map<String, String> paypalParams) {
@@ -62,6 +65,8 @@ public class PayPalService {
 
         logger.info("executing: setUserAsPaid");
         setUserAsPaid(user);
+
+        this.cacheConfig.evictUserId(user.getId());
     }
 
     private User getUser(Long userId) {

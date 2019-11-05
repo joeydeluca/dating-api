@@ -43,6 +43,11 @@ public class CacheConfig {
         logger.info("Cache Evicted");
     }
 
+    @CacheEvict(value = USER_BY_ID_CACHE, key = "#userId")
+    public void evictUserId(Long userId) {
+        logger.info("Cache Evicted for user " + userId);
+    }
+
     @Bean
     public CacheManager concurrentMapCacheManager() {
         ConcurrentMapCacheManager cmcm = new ConcurrentMapCacheManager();
