@@ -12,10 +12,7 @@ import com.joe.dating.domain.profileview.ProfileViewRepository;
 import com.joe.dating.domain.recipientprofile.RecipientProfileService;
 import com.joe.dating.domain.user.User;
 import com.joe.dating.domain.user.UserService;
-import com.joe.dating.email_sending.EmailSender;
-import com.joe.dating.email_sending.FavoriteAlertEmail;
-import com.joe.dating.email_sending.FlirtAlertEmail;
-import com.joe.dating.email_sending.MessageAlertEmail;
+import com.joe.dating.email_sending.*;
 import com.joe.dating.security.AuthContext;
 import com.joe.dating.security.AuthService;
 import freemarker.template.Configuration;
@@ -266,6 +263,23 @@ public class RecipientProfileResource {
         return ResponseEntity.ok(
                 recipientProfileService.getProfileViews(authContext.getUserId())
         );
+    }
+
+    @GetMapping("/{recipientUserId}/report-profile")
+    public ResponseEntity<Void> reportProfile(
+            @RequestHeader(value = "authorization") String authToken,
+            @PathVariable("recipientUserId") Long recipientUserId
+    ) {
+        AuthContext authContext = this.authService.verifyToken(authToken);
+
+        logger.info("Report profile; fromProfileId={}, toProfileId={}", authContext.getUserId(), recipientUserId);
+
+        ContactDto contactDto = new ContactDto();
+        contactDto.setMessage("User "+authContext.getUserId()+" reported a bad profile: " + recipientUserId);
+        contactDto.setUserId(recipientUserId);
+        emailSender.sendEmail(new SupportEmail(contactDto));
+
+        return ResponseEntity.accepted().build();
     }
 
     @Async
