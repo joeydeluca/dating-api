@@ -45,4 +45,34 @@ public class LocationResource {
         return ResponseEntity.ok(cityRepository.findAllByRegionId(regionId));
     }
 
+    @GetMapping("/findme")
+    public ResponseEntity<CurrentLocation> getLocation(@RequestParam float latitude, @RequestParam float longitude) {
+
+        List<Object[]> location = cityRepository.getLocation(latitude, longitude);
+        if(location != null && location.size() > 0 && location.get(0) != null && location.get(0).length >= 6) {
+            Object[] row = location.get(0);
+
+            CurrentLocation currentLocation = new CurrentLocation();
+            currentLocation.cityId = row[0].toString();
+            currentLocation.cityName = row[1].toString();
+            currentLocation.regionId = row[2].toString();
+            currentLocation.regionName = row[3].toString();
+            currentLocation.countryId = row[4].toString();
+            currentLocation.countryName = row[5].toString();
+
+            return ResponseEntity.ok(currentLocation);
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+
+    static class CurrentLocation {
+        public String countryName;
+        public String countryId;
+        public String regionName;
+        public String regionId;
+        public String cityName;
+        public String cityId;
+    }
+
 }
