@@ -23,14 +23,14 @@ public class FlirtAlertEmail extends Email {
 
     @Override
     public String getSubject() {
-        return "Someone has sent you a flirt";
+        return "Someone noticed you";
     }
 
     @Override
     public String getHtml() {
         Map<String, Object> params = new HashMap<>();
         params.put("sender", sender);
-        params.put("s1", sender.getUsername() + " sent you a flirt! View their profile and flirt back.");
+        params.put("s1", sender.getUsername() + " is attempting to flirt with you.");
 
         return super.getHtml(params);
     }
