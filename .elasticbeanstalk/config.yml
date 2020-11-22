@@ -5,7 +5,7 @@ deploy:
   working_directory: ~/app
   docker:
     - image: circleci/ruby:2.4.3
-  #artifact: artifact.zip
+  artifact: artifact.zip
 environment-defaults:
   DatingApiPrd-env:
     branch: null
