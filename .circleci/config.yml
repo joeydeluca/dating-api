@@ -37,7 +37,7 @@ jobs:
 
       - run:
           name: Deploying
-          command: eb deploy DatingApiPrd-env
+          command: awsebcli deploy DatingApiPrd-env
 
       # run tests!
       - run: gradle test
