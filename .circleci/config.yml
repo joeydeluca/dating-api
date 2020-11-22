@@ -28,8 +28,16 @@ jobs:
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
       - run:
+          name: Installing deployment dependencies
+          working_directory: /
+          command: |
+            sudo apt-get -y -qq update
+            sudo apt-get install python3-pip python3-dev build-essential
+            sudo pip3 install awsebcli
+
+      - run:
           name: Deploying
-          command: awsebcli/deploy DatingApiPrd-env
+          command: eb deploy DatingApiPrd-env
 
       # run tests!
       - run: gradle test
