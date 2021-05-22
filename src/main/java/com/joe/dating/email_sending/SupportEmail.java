@@ -12,7 +12,7 @@ public class SupportEmail extends Email {
 
     @Override
     public String getRecipientEmailAddress() {
-        return "joeydeluca123@gmail.com";
+        return "uglyschmucks@gmail.com";
     }
 
     @Override
