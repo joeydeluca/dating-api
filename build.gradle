@@ -14,12 +14,15 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
-apply plugin: 'io.spring.dependency-management'
+apply plugin: 'org.springframework.boot'
 
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+springBoot {
+	mainClass = "com.joe.dating.DatingApplication"
+}
 
 jar {
 	baseName = 'dating-api'
