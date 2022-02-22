@@ -56,13 +56,18 @@ public class PaymentResource {
     public ResponseEntity<Void> ipn(@RequestBody String rawBody, HttpServletRequest request) {
         logger.info("IPN received. ipn={}", rawBody);
 
-        Map<String, String> paramsForService = new HashMap<>();
-        MultiValueMap<String, String> paramsForHttp = new LinkedMultiValueMap<>();
+        try {
+            Map<String, String> paramsForService = new HashMap<>();
+            MultiValueMap<String, String> paramsForHttp = new LinkedMultiValueMap<>();
 
-        setParams(request, paramsForService, paramsForHttp);
+            setParams(request, paramsForService, paramsForHttp);
 
-        if(verifyWithPayPal(paramsForHttp)) {
-            payPalService.processIPN(rawBody, paramsForService);
+            if (verifyWithPayPal(paramsForHttp)) {
+                payPalService.processIPN(rawBody, paramsForService);
+            }
+
+        } catch (Exception e) {
+            logger.error("IPN failed. ipn={}", rawBody);
         }
 
         return ResponseEntity.ok().build();
