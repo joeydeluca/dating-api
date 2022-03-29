@@ -20,6 +20,8 @@ public class CacheConfig {
     public static final String PROFILE_SEARCH_CACHE = "PROFILE_SEARCH_CACHE";
     public static final String USER_BY_ID_CACHE = "USER_BY_ID_CACHE";
     public static final String LOCATION_CACHE = "LOCATION_CACHE";
+    public static final String REGION_CACHE = "REGION_CACHE";
+    public static final String CITY_CACHE = "CITY_CACHE";
     public static final String PAYMENT_CACHE = "PAYMENT_CACHE";
     public static final String PROFILE_VIEWS_BY_ID_CACHE = "PROFILE_VIEWS_CACHE";
     public static final String FLIRTS_BY_ID_CACHE = "FLIRTS_BY_ID_CACHE";

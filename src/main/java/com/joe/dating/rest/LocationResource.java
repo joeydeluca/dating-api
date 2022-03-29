@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static com.joe.dating.config.CacheConfig.LOCATION_CACHE;
+import static com.joe.dating.config.CacheConfig.*;
 
 /**
  * Created by Joe Deluca on 11/21/2016.
@@ -33,13 +33,13 @@ public class LocationResource {
         return ResponseEntity.ok(countryRepository.findAll());
     }
 
-    @Cacheable(LOCATION_CACHE)
+    @Cacheable(REGION_CACHE)
     @GetMapping("/regions")
     public ResponseEntity<List<Region>> findRegions(@RequestParam String countryId) {
         return ResponseEntity.ok(regionRepository.findAllByCountryId(countryId));
     }
 
-    @Cacheable(LOCATION_CACHE)
+    @Cacheable(CITY_CACHE)
     @GetMapping("/cities")
     public ResponseEntity<List<City>> findCities(@RequestParam String regionId) {
         return ResponseEntity.ok(cityRepository.findAllByRegionId(regionId));
