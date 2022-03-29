@@ -19,7 +19,6 @@ import static com.joe.dating.config.CacheConfig.*;
 @RestController
 @RequestMapping("/api/location")
 public class LocationResource {
-
     @Autowired
     private CountryRepository countryRepository;
     @Autowired
