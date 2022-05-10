@@ -1,6 +1,7 @@
 package com.joe.dating.domain.payment;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.joe.dating.domain.DatingEntity;
 import com.joe.dating.domain.user.User;
 
@@ -11,6 +12,7 @@ import java.util.List;
 
 @Entity(name = "subscriptions")
 public class Subscription extends DatingEntity {
+    @JsonIgnore
     @OneToOne()
     @JoinColumn(name = "user_id", updatable = false)
     private User user;
