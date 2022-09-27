@@ -69,6 +69,8 @@ public class RecipientProfileResource {
 
         AuthContext authContext = this.authService.verifyToken(authToken);
 
+        User user = userService.findOne(recipientUserId);
+
         doAsync(() -> {
             ProfileView profileView = new ProfileView();
             profileView.setFromUser(new User(authContext.getUserId()));
@@ -77,7 +79,6 @@ public class RecipientProfileResource {
             recipientProfileService.evictProfileViewCache(recipientUserId);
         });
 
-        User user = userService.findOne(recipientUserId);
         return ResponseEntity.ok(new RecipientProfile(user));
     }
 

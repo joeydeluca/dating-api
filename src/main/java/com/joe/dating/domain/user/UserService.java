@@ -61,7 +61,7 @@ public class UserService {
     @Cacheable(cacheNames = USER_BY_ID_CACHE, key = "#id")
     public User findOne(Long id) {
         User user = userRepository.findOne(id);
-        if(user == null) {
+        if(user == null || user.isDeleted()) {
             throw new IllegalArgumentException("User id does not exist");
         }
         return user;
@@ -159,6 +159,7 @@ public class UserService {
                 pageNumber,
                 pageSize,
                 new Sort(
+                    new Sort.Order(Sort.Direction.DESC, "isPaid"),
                     new Sort.Order(Sort.Direction.DESC, "profile.hasProfilePhoto"),
                     new Sort.Order(Sort.Direction.DESC, "createdDate")
                 )
