@@ -1,6 +1,7 @@
 package com.joe.dating.cloud;
 
 import com.amazonaws.services.rekognition.AmazonRekognition;
+import com.amazonaws.services.rekognition.AmazonRekognitionClientBuilder;
 import com.amazonaws.services.rekognition.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +28,9 @@ public class RekognitionService {
     @Value("${s3.bucket-name}")
     private String s3BucketName;
 
-    @Autowired
-    private AmazonRekognition rekognitionClient;
-
     public void executeImageModeration(String s3Filename) {
+        AmazonRekognition rekognitionClient = AmazonRekognitionClientBuilder.defaultClient();
+
         DetectModerationLabelsRequest request = new DetectModerationLabelsRequest()
                 .withImage(new Image().withS3Object(new S3Object().withName(s3Filename).withBucket(s3BucketName)))
                 .withMinConfidence(75F);
