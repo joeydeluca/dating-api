@@ -1,6 +1,7 @@
 package com.joe.dating.domain.photo;
 
 import com.joe.dating.cloud.CloudStorage;
+import com.joe.dating.cloud.RekognitionService;
 import com.joe.dating.domain.user.User;
 import com.joe.dating.domain.user.UserService;
 import org.imgscalr.Scalr;
@@ -26,15 +27,17 @@ public class PhotoService {
     private final CloudStorage cloudStorage;
     private final PhotoRepository photoRepository;
     private final UserService userService;
+    private final RekognitionService rekognitionService;
 
     private final int PHOTO_LARGE_WIDTH = 500;
     private final int PHOTO_MEDIUM_WIDTH = 191;
     private final int PHOTO_MEDIUM_HEIGHT = 212;
 
-    public PhotoService(CloudStorage cloudStorage, PhotoRepository photoRepository, UserService userService) {
+    public PhotoService(CloudStorage cloudStorage, PhotoRepository photoRepository, UserService userService, RekognitionService rekognitionService) {
         this.cloudStorage = cloudStorage;
         this.photoRepository = photoRepository;
         this.userService = userService;
+        this.rekognitionService = rekognitionService;
     }
 
     public Photo createPhoto(Long profileId, MultipartFile file) throws IOException {
@@ -46,12 +49,21 @@ public class PhotoService {
         photo.setProfilePhoto(false);
         photo = photoRepository.save(photo);
 
+        String s3filename = getLargePhotoFilename(photo.getId());
+
         cloudStorage.uploadImage(getInputStream(largeImage), getLargePhotoFilename(photo.getId()));
-        photo.setLargeFilename(getLargePhotoFilename(photo.getId()));
+        photo.setLargeFilename(s3filename);
 
         photo.incrementVersion();
 
-        return photoRepository.save(photo);
+        try {
+            rekognitionService.executeImageModeration(s3filename);
+            return photoRepository.save(photo);
+        } catch (Exception e) {
+            cloudStorage.deleteImage(s3filename);
+            photoRepository.delete(photo);
+            throw e;
+        }
     }
 
     @CacheEvict(cacheNames = USER_BY_ID_CACHE, key = "#userId")
