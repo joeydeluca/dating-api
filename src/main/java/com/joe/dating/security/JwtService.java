@@ -87,7 +87,7 @@ public class JwtService {
                     .withClaim("isPaid", isPaid)
                     .withClaim("gender", gender.name())
                     .withClaim("genderSeeking", genderSeeking.name())
-                    .withExpiresAt(getExpireDate())
+                    .withClaim("expiry", getExpireDate())
                     .sign(algorithm);
         } catch (UnsupportedEncodingException exception){
             throw new JWTCreationException("Could not create JWT token", exception);
