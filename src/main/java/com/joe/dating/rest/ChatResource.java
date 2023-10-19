@@ -37,7 +37,7 @@ public class ChatResource {
         AuthContext authContext = this.authService.verifyToken(authToken);
 
         // Generate Frend JWT
-        String frendAIJWT = jwtService.createFrendAIJwt(authContext.getUserId(), authContext.getUsername(), false, authContext.getGender(), authContext.getGenderSeeking());
+        String frendAIJWT = jwtService.createFrendAIJwt(authContext.getUserId(), authContext.getUsername(), authContext.isPaid(), authContext.getGender(), authContext.getGenderSeeking());
 
         return ResponseEntity.ok(frendAIJWT);
     }
