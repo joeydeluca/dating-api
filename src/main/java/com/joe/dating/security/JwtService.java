@@ -21,15 +21,19 @@ public class JwtService {
     private final String issuer = "dating-api";
     private final String secretKey;
     private final int expiryInDays;
+    private final String frendaiSecretKey;
 
     public JwtService(@Value("${security.jwt.secret}") String secretKey,
-                      @Value("${security.jwt.expiryInDays}") int expiryInDays) {
+                      @Value("${security.jwt.expiryInDays}") int expiryInDays,
+                      @Value("${security.frendai.jwt.secret}") String frendaiSecretKey) {
         this.secretKey = secretKey;
         this.expiryInDays = expiryInDays;
+        this.frendaiSecretKey = frendaiSecretKey;
     }
 
     public String createJwt(
                     Long userId,
+                    String username,
                     boolean isPaid,
                     int completionStatus,
                     int siteId,
@@ -41,6 +45,7 @@ public class JwtService {
             return JWT.create()
                     .withIssuer(issuer)
                     .withSubject(userId.toString())
+                    .withClaim("username", username)
                     .withClaim("isPaid", isPaid)
                     .withClaim("completionStatus", completionStatus)
                     .withClaim("siteId", siteId)
@@ -62,6 +67,30 @@ public class JwtService {
             return verifier.verify(token);
         } catch (UnsupportedEncodingException exception){
             throw new JWTVerificationException("Could not decode JWT token", exception);
+        }
+    }
+
+    public String createFrendAIJwt(
+            Long userId,
+            String username,
+            boolean isPaid,
+            Gender gender,
+            Gender genderSeeking
+    ) {
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(frendaiSecretKey);
+            return JWT.create()
+                    .withIssuer("uglyschmucks")
+                    .withSubject(userId.toString())
+                    .withClaim("userId", userId)
+                    .withClaim("username", username)
+                    .withClaim("isPaid", isPaid)
+                    .withClaim("gender", gender.name())
+                    .withClaim("genderSeeking", genderSeeking.name())
+                    .withExpiresAt(getExpireDate())
+                    .sign(algorithm);
+        } catch (UnsupportedEncodingException exception){
+            throw new JWTCreationException("Could not create JWT token", exception);
         }
     }
 

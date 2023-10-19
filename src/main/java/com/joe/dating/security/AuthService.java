@@ -38,6 +38,7 @@ public class AuthService {
         return createAuthContext(
                 user.getId(),
                 user.isPaid(),
+                user.getUsername(),
                 user.getCompletionStatus(),
                 user.getSiteId(),
                 user.getGender(),
@@ -48,6 +49,7 @@ public class AuthService {
 
     public AuthContext createAuthContext(Long userId,
                                          boolean isPaid,
+                                         String username,
                                          int completionStatus,
                                          int siteId,
                                          Gender gender,
@@ -55,6 +57,7 @@ public class AuthService {
 
         String token = jwtService.createJwt(
                 userId,
+                username,
                 isPaid,
                 completionStatus,
                 siteId,
@@ -62,7 +65,9 @@ public class AuthService {
                 genderSeeking);
 
         AuthContext authContext = new AuthContext();
+
         authContext.setToken(token);
+        authContext.setUsername(username);
         authContext.setUserId(userId);
         authContext.setPaid(isPaid);
         authContext.setCompletionStatus(completionStatus);
@@ -95,6 +100,8 @@ public class AuthService {
         authContext.setGender(Gender.valueOf(jwt.getClaim("gender").asString()));
         authContext.setGenderSeeking(Gender.valueOf(jwt.getClaim("genderSeeking").asString()));
         authContext.setPaid(jwt.getClaim("isPaid").asBoolean());
+        authContext.setUsername(jwt.getClaim("username").asString());
+
         return authContext;
     }
 

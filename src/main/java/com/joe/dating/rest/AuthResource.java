@@ -44,6 +44,7 @@ public class AuthResource {
                 authService.createAuthContext(
                         user.getId(),
                         user.isPaid(),
+                        user.getUsername(),
                         user.getCompletionStatus(),
                         user.getSiteId(),
                         user.getGender(),

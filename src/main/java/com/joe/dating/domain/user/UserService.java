@@ -91,6 +91,7 @@ public class UserService {
         return authService.createAuthContext(
                 createdUser.getId(),
                 createdUser.isPaid(),
+                createdUser.getUsername(),
                 createdUser.getCompletionStatus(),
                 createdUser.getSiteId(),
                 createdUser.getGender(),

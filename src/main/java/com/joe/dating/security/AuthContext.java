@@ -5,6 +5,7 @@ import com.joe.dating.domain.user.models.Gender;
 public final class AuthContext {
     private String token;
     private Long userId;
+    private String username;
     private boolean isPaid;
     private Gender gender;
     private Gender genderSeeking;
@@ -65,5 +66,13 @@ public final class AuthContext {
 
     public void setSiteId(int siteId) {
         this.siteId = siteId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }
