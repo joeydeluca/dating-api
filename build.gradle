@@ -51,7 +51,7 @@ dependencies {
 	compile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.203'
 	compile group: 'com.amazonaws', name: 'aws-java-sdk-rekognition', version: '1.12.311'
 
-	runtime 'mysql:mysql-connector-java'
+	runtime 'com.mysql:mysql-connector-j:8.4.0'
 
 	runtime "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
 

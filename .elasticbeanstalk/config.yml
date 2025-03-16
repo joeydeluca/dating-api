@@ -1,20 +1,18 @@
 branch-defaults:
   master:
-    environment: DatingApiPrd-env
+    environment: DatingApiPrd-env2-env
 deploy:
   docker:
     - image: circleci/ruby:2.4.3
   artifact: artifact.zip
 environment-defaults:
-  DatingApiPrd-env:
+  DatingApiPrd-env2-env:
     branch: null
     repository: null
 global:
-  application_name: dating-api-prd
+  application_name: DatingApiPrd-env2
   default_ec2_keyname: AmazonCloud
-  default_platform: arn:aws:elasticbeanstalk:us-east-1::platform/Java 8 running on
-    64bit Amazon Linux/2.5.4
+  default_platform: arn:aws:elasticbeanstalk:us-east-1::platform/Corretto 8 running on 64bit Amazon Linux 2/3.7.12
   default_region: us-east-1
   sc: git
   workspace_type: Application
-
